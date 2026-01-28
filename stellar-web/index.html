@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stellar Web - Interactive Particle System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            color: #fff;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(10, 10, 20, 0.85);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            z-index: 100;
+            width: 280px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.1);
+        }
+
+        .controls h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+            color: #aaccff;
+        }
+
+        .control-group label span {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, #1a1a2e, #2a2a4e);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #00ffff, #0088ff);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #00ffff, #0088ff);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .title {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .title h1 {
+            font-size: 2em;
+            background: linear-gradient(90deg, #00ffff, #ff00ff, #00ffff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+        }
+
+        .title p {
+            color: #668899;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .legend {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(100, 200, 255, 0.2);
+            font-size: 0.75em;
+        }
+
+        .legend h3 {
+            color: #aaccff;
+            margin-bottom: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 4px;
+            margin-right: 10px;
+            border-radius: 2px;
+        }
+
+        .legend-color.short {
+            background: linear-gradient(90deg, #00ffff, #00aaff);
+        }
+
+        .legend-color.long {
+            background: linear-gradient(90deg, #aa00ff, #ff00ff);
+        }
+
+        .legend-color.slow {
+            background: radial-gradient(circle, #00ffff, transparent);
+        }
+
+        .legend-color.fast {
+            background: radial-gradient(circle, #ff6600, transparent);
+        }
+
+        .statistics {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(10, 10, 20, 0.85);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+            z-index: 100;
+            width: 250px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.1);
+        }
+
+        .statistics h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(100, 200, 255, 0.1);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #aaccff;
+            font-size: 0.85em;
+        }
+
+        .stat-value {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(100, 200, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .drag-hint {
+            text-align: center;
+            color: #668899;
+            font-size: 0.75em;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(100, 200, 255, 0.2);
+        }
+
+        canvas {
+            cursor: grab;
+        }
+
+        canvas.dragging {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div class="title">
+        <h1>Stellar Web</h1>
+        <p>Interactive 3D Particle Network</p>
+    </div>
+
+    <div class="controls">
+        <h2>Control Panel</h2>
+
+        <div class="control-group">
+            <label>Node Count <span id="nodeCountValue">100</span></label>
+            <input type="range" id="nodeCount" min="20" max="200" value="100">
+        </div>
+
+        <div class="control-group">
+            <label>Connectivity Radius <span id="connectRadiusValue">150</span></label>
+            <input type="range" id="connectRadius" min="50" max="300" value="150">
+        </div>
+
+        <div class="control-group">
+            <label>Edge Thickness <span id="edgeThicknessValue">1.5</span></label>
+            <input type="range" id="edgeThickness" min="0.5" max="5" step="0.1" value="1.5">
+        </div>
+
+        <div class="control-group">
+            <label>Edge Opacity <span id="edgeOpacityValue">0.6</span></label>
+            <input type="range" id="edgeOpacity" min="0" max="1" step="0.05" value="0.6">
+        </div>
+
+        <div class="control-group">
+            <label>Node Size <span id="nodeSizeValue">4</span></label>
+            <input type="range" id="nodeSize" min="2" max="10" step="0.5" value="4">
+        </div>
+
+        <div class="control-group">
+            <label>Node Speed <span id="nodeSpeedValue">1</span></label>
+            <input type="range" id="nodeSpeed" min="0.1" max="3" step="0.1" value="1">
+        </div>
+
+        <div class="control-group">
+            <label>Depth Range <span id="depthRangeValue">300</span></label>
+            <input type="range" id="depthRange" min="100" max="500" value="300">
+        </div>
+
+        <div class="legend">
+            <h3>Color Legend</h3>
+            <div class="legend-item">
+                <div class="legend-color short"></div>
+                <span>Short edges (close nodes)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color long"></div>
+                <span>Long edges (distant nodes)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color slow"></div>
+                <span>Slow nodes</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color fast"></div>
+                <span>Fast nodes</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="statistics">
+        <h2>Network Statistics</h2>
+        <div class="stat-item">
+            <span class="stat-label">Total Edges</span>
+            <span class="stat-value" id="totalEdges">0</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Avg Connections/Node</span>
+            <span class="stat-value" id="avgConnections">0.00</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Network Density</span>
+            <span class="stat-value" id="networkDensity">0.00%</span>
+        </div>
+        <div class="stat-bar">
+            <div class="stat-bar-fill" id="densityBar" style="width: 0%"></div>
+        </div>
+        <div class="stat-item">
+            <span class="stat-label">Max Possible Edges</span>
+            <span class="stat-value" id="maxEdges">0</span>
+        </div>
+        <div class="drag-hint">Click and drag nodes to move them</div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Configuration
+        const config = {
+            nodeCount: 100,
+            connectRadius: 150,
+            edgeThickness: 1.5,
+            edgeOpacity: 0.6,
+            nodeSize: 4,
+            nodeSpeed: 1,
+            depthRange: 300
+        };
+
+        // Color utility functions
+        function hslToRgb(h, s, l) {
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l;
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+        }
+
+        // Get edge color based on distance (length gradient)
+        function getEdgeColor(distance, maxDistance, opacity) {
+            const ratio = distance / maxDistance;
+            // Gradient from cyan (180) to magenta (300)
+            const hue = 180 + ratio * 120;
+            const [r, g, b] = hslToRgb(hue / 360, 1, 0.6);
+            return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+        }
+
+        // Get node color based on velocity (velocity gradient)
+        function getNodeColor(velocity, maxVelocity) {
+            const ratio = Math.min(velocity / maxVelocity, 1);
+            // Gradient from cyan (180) to orange (30)
+            const hue = 180 - ratio * 150;
+            const [r, g, b] = hslToRgb(hue / 360, 1, 0.6);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Mouse interaction state
+        let draggedParticle = null;
+        let mouseX = 0;
+        let mouseY = 0;
+
+        // Particle class
+        class Particle {
+            constructor() {
+                this.reset();
+                this.isDragged = false;
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.z = Math.random() * config.depthRange;
+
+                const angle = Math.random() * Math.PI * 2;
+                const angleZ = Math.random() * Math.PI * 2;
+                const speed = (0.2 + Math.random() * 0.8) * config.nodeSpeed;
+
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.vz = Math.sin(angleZ) * speed * 0.5;
+                this.isDragged = false;
+            }
+
+            update() {
+                // Skip movement if being dragged
+                if (this.isDragged) return;
+
+                // Apply velocity with speed multiplier
+                this.x += this.vx * config.nodeSpeed;
+                this.y += this.vy * config.nodeSpeed;
+                this.z += this.vz * config.nodeSpeed;
+
+                // Bounce off walls
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                if (this.z < 0 || this.z > config.depthRange) this.vz *= -1;
+
+                // Keep in bounds
+                this.x = Math.max(0, Math.min(canvas.width, this.x));
+                this.y = Math.max(0, Math.min(canvas.height, this.y));
+                this.z = Math.max(0, Math.min(config.depthRange, this.z));
+            }
+
+            getVelocity() {
+                return Math.sqrt(this.vx * this.vx + this.vy * this.vy + this.vz * this.vz);
+            }
+
+            // Get projected position and scale based on z-depth
+            getProjected() {
+                const perspective = 1000;
+                const scale = perspective / (perspective + this.z);
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                return {
+                    x: centerX + (this.x - centerX) * scale,
+                    y: centerY + (this.y - centerY) * scale,
+                    scale: scale,
+                    alpha: 0.3 + scale * 0.7
+                };
+            }
+
+            // Check if point is within the node (for mouse interaction)
+            containsPoint(px, py) {
+                const proj = this.getProjected();
+                const size = config.nodeSize * proj.scale * 3; // Use glow size for easier clicking
+                const dx = proj.x - px;
+                const dy = proj.y - py;
+                return (dx * dx + dy * dy) <= (size * size);
+            }
+
+            // Set position from screen coordinates
+            setPositionFromScreen(screenX, screenY) {
+                const perspective = 1000;
+                const scale = perspective / (perspective + this.z);
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Reverse the projection to get world coordinates
+                this.x = centerX + (screenX - centerX) / scale;
+                this.y = centerY + (screenY - centerY) / scale;
+            }
+        }
+
+        // Particle system
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+                this.stats = {
+                    totalEdges: 0,
+                    avgConnections: 0,
+                    networkDensity: 0,
+                    maxEdges: 0
+                };
+                this.initParticles();
+            }
+
+            initParticles() {
+                this.particles = [];
+                for (let i = 0; i < config.nodeCount; i++) {
+                    this.particles.push(new Particle());
+                }
+            }
+
+            updateParticleCount() {
+                while (this.particles.length < config.nodeCount) {
+                    this.particles.push(new Particle());
+                }
+                while (this.particles.length > config.nodeCount) {
+                    this.particles.pop();
+                }
+            }
+
+            // Find particle at screen position (for mouse interaction)
+            findParticleAt(screenX, screenY) {
+                // Sort by z (front to back) so we pick the frontmost particle
+                const sortedByDepth = [...this.particles].sort((a, b) => a.z - b.z);
+                for (const particle of sortedByDepth) {
+                    if (particle.containsPoint(screenX, screenY)) {
+                        return particle;
+                    }
+                }
+                return null;
+            }
+
+            update() {
+                this.updateParticleCount();
+                for (const particle of this.particles) {
+                    particle.update();
+                }
+            }
+
+            draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Sort particles by z-depth for proper rendering
+                const sortedParticles = [...this.particles].sort((a, b) => b.z - a.z);
+
+                // Draw edges first and count them for statistics
+                this.drawEdges(sortedParticles);
+
+                // Draw nodes on top
+                this.drawNodes(sortedParticles);
+
+                // Update statistics display
+                this.updateStatsDisplay();
+            }
+
+            drawEdges(particles) {
+                const maxVelocity = 3 * config.nodeSpeed;
+                let edgeCount = 0;
+                const connectionCounts = new Array(particles.length).fill(0);
+
+                for (let i = 0; i < particles.length; i++) {
+                    const p1 = particles[i];
+                    const proj1 = p1.getProjected();
+
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+
+                        // Calculate 3D distance
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const dz = p1.z - p2.z;
+                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                        if (distance < config.connectRadius) {
+                            edgeCount++;
+                            connectionCounts[i]++;
+                            connectionCounts[j]++;
+
+                            const proj2 = p2.getProjected();
+
+                            // Calculate opacity based on distance and depth
+                            const distanceFactor = 1 - (distance / config.connectRadius);
+                            const depthFactor = (proj1.alpha + proj2.alpha) / 2;
+                            const opacity = distanceFactor * depthFactor * config.edgeOpacity;
+
+                            // Get color based on edge length
+                            const color = getEdgeColor(distance, config.connectRadius, opacity);
+
+                            // Draw edge with thickness affected by depth
+                            const avgScale = (proj1.scale + proj2.scale) / 2;
+                            ctx.beginPath();
+                            ctx.moveTo(proj1.x, proj1.y);
+                            ctx.lineTo(proj2.x, proj2.y);
+                            ctx.strokeStyle = color;
+                            ctx.lineWidth = config.edgeThickness * avgScale;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // Update statistics
+                const n = particles.length;
+                this.stats.totalEdges = edgeCount;
+                this.stats.maxEdges = (n * (n - 1)) / 2;
+                this.stats.avgConnections = n > 0 ? (edgeCount * 2) / n : 0;
+                this.stats.networkDensity = this.stats.maxEdges > 0
+                    ? (edgeCount / this.stats.maxEdges) * 100
+                    : 0;
+            }
+
+            updateStatsDisplay() {
+                document.getElementById('totalEdges').textContent = this.stats.totalEdges;
+                document.getElementById('avgConnections').textContent = this.stats.avgConnections.toFixed(2);
+                document.getElementById('networkDensity').textContent = this.stats.networkDensity.toFixed(2) + '%';
+                document.getElementById('maxEdges').textContent = this.stats.maxEdges;
+                document.getElementById('densityBar').style.width = Math.min(this.stats.networkDensity, 100) + '%';
+            }
+
+            drawNodes(particles) {
+                const maxVelocity = 3 * config.nodeSpeed;
+
+                for (const particle of particles) {
+                    const proj = particle.getProjected();
+                    const velocity = particle.getVelocity();
+                    const color = getNodeColor(velocity, maxVelocity);
+                    const size = config.nodeSize * proj.scale;
+
+                    // Draw glow
+                    const gradient = ctx.createRadialGradient(
+                        proj.x, proj.y, 0,
+                        proj.x, proj.y, size * 3
+                    );
+                    gradient.addColorStop(0, color);
+                    gradient.addColorStop(0.3, color.replace('rgb', 'rgba').replace(')', `, ${proj.alpha * 0.5})`));
+                    gradient.addColorStop(1, 'transparent');
+
+                    ctx.beginPath();
+                    ctx.arc(proj.x, proj.y, size * 3, 0, Math.PI * 2);
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+
+                    // Draw core
+                    ctx.beginPath();
+                    ctx.arc(proj.x, proj.y, size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${proj.alpha})`;
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Initialize particle system
+        const particleSystem = new ParticleSystem();
+
+        // Animation loop
+        function animate() {
+            particleSystem.update();
+            particleSystem.draw();
+            requestAnimationFrame(animate);
+        }
+
+        // UI Controls
+        function setupControls() {
+            const controls = [
+                { id: 'nodeCount', prop: 'nodeCount', isInt: true },
+                { id: 'connectRadius', prop: 'connectRadius', isInt: true },
+                { id: 'edgeThickness', prop: 'edgeThickness', isInt: false },
+                { id: 'edgeOpacity', prop: 'edgeOpacity', isInt: false },
+                { id: 'nodeSize', prop: 'nodeSize', isInt: false },
+                { id: 'nodeSpeed', prop: 'nodeSpeed', isInt: false },
+                { id: 'depthRange', prop: 'depthRange', isInt: true }
+            ];
+
+            controls.forEach(({ id, prop, isInt }) => {
+                const slider = document.getElementById(id);
+                const valueDisplay = document.getElementById(`${id}Value`);
+
+                slider.addEventListener('input', () => {
+                    const value = isInt ? parseInt(slider.value) : parseFloat(slider.value);
+                    config[prop] = value;
+                    valueDisplay.textContent = isInt ? value : value.toFixed(1);
+                });
+            });
+        }
+
+        // Mouse event handlers for dragging nodes
+        function setupMouseInteraction() {
+            canvas.addEventListener('mousedown', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+
+                draggedParticle = particleSystem.findParticleAt(mouseX, mouseY);
+                if (draggedParticle) {
+                    draggedParticle.isDragged = true;
+                    canvas.classList.add('dragging');
+                }
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+                mouseY = e.clientY - rect.top;
+
+                if (draggedParticle) {
+                    draggedParticle.setPositionFromScreen(mouseX, mouseY);
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                if (draggedParticle) {
+                    draggedParticle.isDragged = false;
+                    // Give the particle a small velocity based on recent movement
+                    draggedParticle.vx = (Math.random() - 0.5) * 0.5;
+                    draggedParticle.vy = (Math.random() - 0.5) * 0.5;
+                    draggedParticle = null;
+                    canvas.classList.remove('dragging');
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                if (draggedParticle) {
+                    draggedParticle.isDragged = false;
+                    draggedParticle = null;
+                    canvas.classList.remove('dragging');
+                }
+            });
+
+            // Touch support for mobile devices
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                mouseX = touch.clientX - rect.left;
+                mouseY = touch.clientY - rect.top;
+
+                draggedParticle = particleSystem.findParticleAt(mouseX, mouseY);
+                if (draggedParticle) {
+                    draggedParticle.isDragged = true;
+                }
+            });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (draggedParticle) {
+                    const rect = canvas.getBoundingClientRect();
+                    const touch = e.touches[0];
+                    mouseX = touch.clientX - rect.left;
+                    mouseY = touch.clientY - rect.top;
+                    draggedParticle.setPositionFromScreen(mouseX, mouseY);
+                }
+            });
+
+            canvas.addEventListener('touchend', () => {
+                if (draggedParticle) {
+                    draggedParticle.isDragged = false;
+                    draggedParticle.vx = (Math.random() - 0.5) * 0.5;
+                    draggedParticle.vy = (Math.random() - 0.5) * 0.5;
+                    draggedParticle = null;
+                }
+            });
+        }
+
+        // Start the application
+        setupControls();
+        setupMouseInteraction();
+        animate();
+    </script>
+</body>
+</html>
