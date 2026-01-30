@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Snake</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="screen">
+            <h1 class="title">NEON SNAKE</h1>
+            <div class="settings-panel">
+                <div class="setting">
+                    <label>AI Opponents</label>
+                    <div class="slider-container">
+                        <input type="range" id="ai-slider" min="0" max="5" value="2">
+                        <span id="ai-count">2</span>
+                    </div>
+                </div>
+                <div class="setting">
+                    <label>Sound Effects</label>
+                    <div class="toggle-group">
+                        <button class="toggle active" data-setting="sound" data-value="on">ON</button>
+                        <button class="toggle" data-setting="sound" data-value="off">OFF</button>
+                    </div>
+                </div>
+                <div class="setting">
+                    <label>Grid Lines</label>
+                    <div class="toggle-group">
+                        <button class="toggle active" data-setting="grid" data-value="on">ON</button>
+                        <button class="toggle" data-setting="grid" data-value="off">OFF</button>
+                    </div>
+                </div>
+                <div class="setting">
+                    <label>Particles</label>
+                    <div class="toggle-group">
+                        <button class="toggle active" data-setting="particles" data-value="on">ON</button>
+                        <button class="toggle" data-setting="particles" data-value="off">OFF</button>
+                    </div>
+                </div>
+            </div>
+            <button id="start-btn" class="neon-btn">START GAME</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen hidden">
+            <div class="hud">
+                <div class="stat">SCORE: <span id="score">0</span></div>
+                <div class="stat">HIGH: <span id="high-score">0</span></div>
+                <div class="stat">LENGTH: <span id="length">3</span></div>
+            </div>
+            <canvas id="game-canvas"></canvas>
+            <div class="controls">
+                <button id="settings-btn" class="control-btn">⚙</button>
+                <button id="pause-btn" class="control-btn">⏸</button>
+                <button id="restart-btn" class="control-btn">↻</button>
+            </div>
+            <div id="power-up-display" class="power-up-display"></div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pause-overlay" class="overlay hidden">
+            <h2>PAUSED</h2>
+            <p>Press SPACE to resume</p>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameover-overlay" class="overlay hidden">
+            <h2>GAME OVER</h2>
+            <div class="final-stats">
+                <p>Score: <span id="final-score">0</span></p>
+                <p>Length: <span id="final-length">0</span></p>
+                <p id="new-high" class="hidden">🎉 NEW HIGH SCORE! 🎉</p>
+            </div>
+            <button id="play-again-btn" class="neon-btn">PLAY AGAIN</button>
+            <button id="menu-btn" class="neon-btn secondary">MENU</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

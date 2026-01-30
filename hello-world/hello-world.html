@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World - Sarah</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 200vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            margin-top: 5rem;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .name {
+            font-size: 2.5rem;
+            color: #764ba2;
+            margin: 1.5rem 0;
+            font-weight: 600;
+        }
+
+        .greeting {
+            font-size: 1.2rem;
+            color: #555;
+            line-height: 1.6;
+            margin-top: 1rem;
+        }
+
+        .scroll-hint {
+            margin-top: 3rem;
+            color: #888;
+            font-size: 0.9rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .spacer {
+            height: 100vh;
+        }
+
+        .bottom-message {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            max-width: 500px;
+            margin: 2rem 0;
+        }
+
+        .bottom-message h2 {
+            color: #667eea;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hello World!</h1>
+        <div class="name">Sarah</div>
+        <p class="greeting">
+            Welcome! Thanks for visiting this page.
+            Scroll down to see something special!
+        </p>
+        <div class="scroll-hint">↓ Scroll down ↓</div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="bottom-message">
+        <h2>🎉 You made it! 🎉</h2>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        let confettiTriggered = false;
+
+        function isScrolledToBottom() {
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const bottomPosition = document.documentElement.scrollHeight;
+            return scrollPosition >= bottomPosition - 100;
+        }
+
+        function triggerConfetti() {
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#4facfe'];
+
+            (function frame() {
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: colors
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        window.addEventListener('scroll', function() {
+            if (!confettiTriggered && isScrolledToBottom()) {
+                confettiTriggered = true;
+                triggerConfetti();
+            }
+        });
+    </script>
+</body>
+</html>
