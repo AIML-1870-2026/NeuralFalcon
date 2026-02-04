@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boids Lab</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>BOIDS LAB</h1>
+            <div class="header-controls">
+                <button id="pause-btn" title="Space to toggle">⏵ Play</button>
+                <button id="reset-btn">↻ Reset</button>
+            </div>
+        </header>
+
+        <div class="main-layout">
+            <div class="canvas-area">
+                <canvas id="canvas"></canvas>
+                <div class="metrics-bar">
+                    <span id="fps-display">60 fps</span>
+                    <span id="boid-count-display">150 boids</span>
+                    <span id="avg-speed-display">Avg Speed: 0.0</span>
+                    <span id="avg-neighbors-display">Avg Neighbors: 0.0</span>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <!-- Parameters -->
+                <section class="control-section">
+                    <h2>Parameters</h2>
+                    <div class="slider-group">
+                        <label title="How strongly boids avoid crowding nearby flockmates">
+                            Separation <span id="sep-val">1.5</span>
+                        </label>
+                        <input type="range" id="separation" min="0" max="5" step="0.1" value="1.5">
+                    </div>
+                    <div class="slider-group">
+                        <label title="How strongly boids steer toward average heading of neighbors">
+                            Alignment <span id="ali-val">1.0</span>
+                        </label>
+                        <input type="range" id="alignment" min="0" max="5" step="0.1" value="1.0">
+                    </div>
+                    <div class="slider-group">
+                        <label title="How strongly boids steer toward average position of neighbors">
+                            Cohesion <span id="coh-val">1.0</span>
+                        </label>
+                        <input type="range" id="cohesion" min="0" max="5" step="0.1" value="1.0">
+                    </div>
+                    <div class="slider-group">
+                        <label title="Distance within which other boids are considered neighbors">
+                            Neighbor Radius <span id="rad-val">50</span>
+                        </label>
+                        <input type="range" id="neighborRadius" min="20" max="200" step="1" value="50">
+                    </div>
+                    <div class="slider-group">
+                        <label title="Maximum velocity magnitude">
+                            Max Speed <span id="spd-val">4</span>
+                        </label>
+                        <input type="range" id="maxSpeed" min="1" max="10" step="0.5" value="4">
+                    </div>
+                    <button id="reset-params-btn" class="small-btn">Reset Defaults</button>
+                </section>
+
+                <!-- Presets -->
+                <section class="control-section">
+                    <h2>Presets</h2>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-preset="schooling">Schooling</button>
+                        <button class="preset-btn" data-preset="chaotic">Chaotic Swarm</button>
+                        <button class="preset-btn" data-preset="tight">Tight Cluster</button>
+                    </div>
+                    <div id="preset-label" class="preset-label">Custom</div>
+                </section>
+
+                <!-- Boundary -->
+                <section class="control-section">
+                    <h2>Boundary</h2>
+                    <div class="toggle-row">
+                        <button id="wrap-btn" class="toggle-btn active">Wrap</button>
+                        <button id="bounce-btn" class="toggle-btn">Bounce</button>
+                    </div>
+                </section>
+
+                <!-- Predators -->
+                <section class="control-section">
+                    <h2>Predators</h2>
+                    <div class="predator-buttons">
+                        <button class="add-predator-btn" data-type="hawk">+ Hawk</button>
+                        <button class="add-predator-btn" data-type="snake">+ Snake</button>
+                        <button class="add-predator-btn" data-type="shark">+ Shark</button>
+                    </div>
+                    <div id="predator-count" class="info-text">No predators</div>
+                    <div class="slider-group">
+                        <label title="How far away boids detect predators">
+                            Fear Radius <span id="fear-val">150</span>
+                        </label>
+                        <input type="range" id="fearRadius" min="50" max="300" step="5" value="150">
+                    </div>
+                    <div class="slider-group">
+                        <label title="Predator speed multiplier">
+                            Predator Speed <span id="pred-spd-val">1.0</span>x
+                        </label>
+                        <input type="range" id="predatorSpeed" min="0.5" max="2" step="0.1" value="1.0">
+                    </div>
+                    <button id="clear-predators-btn" class="small-btn">Clear All Predators</button>
+                </section>
+
+                <!-- Perception -->
+                <section class="control-section">
+                    <h2>Perception</h2>
+                    <div class="check-row">
+                        <label><input type="checkbox" id="use-fov"> Enable FOV</label>
+                    </div>
+                    <div class="slider-group">
+                        <label>
+                            Field of View <span id="fov-val">270</span>°
+                        </label>
+                        <input type="range" id="fov" min="90" max="300" step="10" value="270">
+                    </div>
+                    <div class="check-row">
+                        <label><input type="checkbox" id="show-vision"> Show Vision Cone</label>
+                    </div>
+                    <div id="fov-info" class="info-text hidden">Boids see 100% of neighbors</div>
+                </section>
+
+                <!-- Visuals -->
+                <section class="control-section">
+                    <h2>Visuals</h2>
+                    <div class="check-row">
+                        <label><input type="checkbox" id="show-trails"> Enable Trails</label>
+                    </div>
+                    <div class="slider-group">
+                        <label>Trail Length <span id="trail-len-val">20</span></label>
+                        <input type="range" id="trailLength" min="5" max="50" step="1" value="20">
+                    </div>
+                    <div class="slider-group">
+                        <label>Trail Opacity <span id="trail-opa-val">40</span>%</label>
+                        <input type="range" id="trailOpacity" min="10" max="80" step="5" value="40">
+                    </div>
+                    <div class="theme-buttons">
+                        <button class="theme-btn active" data-theme="minimal">Minimal</button>
+                        <button class="theme-btn" data-theme="neon">Neon</button>
+                        <button class="theme-btn" data-theme="nature">Nature</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="boids.js"></script>
+</body>
+</html>
