@@ -124,6 +124,9 @@
               <option value="caillou">&#x1F9D2; Caillou</option>
             </select>
           </div>
+          <div id="yt-player-wrap">
+            <div id="yt-player"></div>
+          </div>
           <div id="audio-visualizer">
             <div class="viz-bar"></div>
             <div class="viz-bar"></div>
@@ -132,7 +135,7 @@
             <div class="viz-bar"></div>
             <div class="viz-bar"></div>
           </div>
-          <p class="hint" id="audio-status">Audio engine ready. Enable to start.</p>
+          <p class="hint" id="audio-status">Enable to play the actual song, driven by the simulation.</p>
         </section>
       </div>
     </aside>
@@ -141,7 +144,7 @@
   <footer id="status-bar">
     <span id="fps-display">FPS: --</span>
     <span id="grid-display">Grid: 256x256</span>
-    <span id="preset-display">Preset: Mitosis</span>
+    <span id="preset-display">Preset: Turing Pattern</span>
     <span id="model-display">Model: Gray-Scott</span>
   </footer>
 
@@ -160,6 +163,7 @@
 
   <script src="simulation.js"></script>
   <script src="ui.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="music.js"></script>
 </body>
 </html>
