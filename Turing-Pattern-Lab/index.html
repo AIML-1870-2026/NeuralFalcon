@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turing Pattern Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header id="header">
+    <div class="header-left">
+      <span class="logo">&#x2B22;</span>
+      <h1 class="title">Turing Pattern Lab</h1>
+    </div>
+    <div class="header-controls">
+      <div class="header-select">
+        <label>Model</label>
+        <select id="model-select">
+          <option value="gray-scott">Gray-Scott</option>
+          <option value="fitzhugh-nagumo">Fitzhugh-Nagumo</option>
+          <option value="schnakenberg">Schnakenberg</option>
+        </select>
+      </div>
+      <div class="header-select">
+        <label>Preset</label>
+        <select id="preset-select"></select>
+      </div>
+      <div class="header-select">
+        <label>Color Map</label>
+        <select id="colormap-select">
+          <option value="monochrome">Monochrome</option>
+          <option value="thermal">Thermal</option>
+          <option value="ocean" selected>Ocean</option>
+          <option value="neon">Neon</option>
+          <option value="earth">Earth</option>
+        </select>
+      </div>
+      <button id="info-btn" class="icon-btn" title="Info">&#x2139;</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <div id="canvas-container">
+      <canvas id="sim-canvas"></canvas>
+      <div id="brush-indicator"></div>
+      <div id="no-webgl" class="hidden">
+        <h2>WebGL 2 Required</h2>
+        <p>Your browser does not support WebGL 2. Please use a modern browser like Chrome, Firefox, Safari, or Edge.</p>
+      </div>
+    </div>
+
+    <aside id="panel" class="panel-open">
+      <button id="panel-toggle" title="Toggle panel">&#x25C0;</button>
+
+      <div class="panel-content">
+        <section class="panel-section">
+          <h3>Parameters</h3>
+          <div id="param-sliders"></div>
+        </section>
+
+        <section class="panel-section">
+          <h3>Simulation</h3>
+          <div class="slider-row">
+            <label>Speed</label>
+            <input type="range" id="speed-slider" min="1" max="64" value="16" step="1">
+            <span class="slider-val" id="speed-val">16</span>
+          </div>
+          <div class="slider-row">
+            <label>Grid Size</label>
+            <select id="grid-size-select">
+              <option value="128">128</option>
+              <option value="256" selected>256</option>
+              <option value="512">512</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button id="play-btn" class="sim-btn active" title="Play/Pause (Space)">&#x25B6; Play</button>
+            <button id="step-btn" class="sim-btn" title="Step (S)">&#x23ED; Step</button>
+            <button id="clear-btn" class="sim-btn" title="Clear (C)">&#x23F3; Clear</button>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h3>Brush</h3>
+          <div class="slider-row">
+            <label>Radius</label>
+            <input type="range" id="brush-slider" min="1" max="50" value="10" step="1">
+            <span class="slider-val" id="brush-val">10</span>
+          </div>
+          <div class="btn-row">
+            <span class="brush-mode-label">Mode:</span>
+            <button id="seed-mode-btn" class="sim-btn active">Seed</button>
+            <button id="erase-mode-btn" class="sim-btn">Erase</button>
+          </div>
+          <p class="hint">Click/drag to paint. Shift+click to erase. Scroll to resize.</p>
+        </section>
+
+        <section class="panel-section">
+          <h3>Export</h3>
+          <div class="btn-row">
+            <button id="screenshot-btn" class="sim-btn">&#x1F4F7; Screenshot</button>
+            <button id="permalink-btn" class="sim-btn">&#x1F517; Copy Link</button>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <h3>Soundtrack</h3>
+          <div class="toggle-row">
+            <label>Enable</label>
+            <button id="music-toggle" class="toggle-btn" title="Toggle Music (M)">OFF</button>
+          </div>
+          <div class="slider-row">
+            <label>Volume</label>
+            <input type="range" id="volume-slider" min="0" max="100" value="50" step="1">
+            <span class="slider-val" id="volume-val">50</span>
+          </div>
+          <div class="slider-row">
+            <label>Theme</label>
+            <select id="theme-select">
+              <option value="science">&#x1F52C; Bill Nye</option>
+              <option value="gummy">&#x1F43B; Gummy Bear</option>
+              <option value="friday">&#x1F3A4; Friday</option>
+              <option value="caillou">&#x1F9D2; Caillou</option>
+            </select>
+          </div>
+          <div id="audio-visualizer">
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+            <div class="viz-bar"></div>
+          </div>
+          <p class="hint" id="audio-status">Audio engine ready. Enable to start.</p>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="status-bar">
+    <span id="fps-display">FPS: --</span>
+    <span id="grid-display">Grid: 256x256</span>
+    <span id="preset-display">Preset: Mitosis</span>
+    <span id="model-display">Model: Gray-Scott</span>
+  </footer>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="modal hidden">
+    <div class="modal-content">
+      <button id="modal-close" class="modal-close">&times;</button>
+      <div id="modal-body">
+        <h2>Reaction-Diffusion Patterns</h2>
+        <div id="info-text"></div>
+        <h3>Pattern Guide</h3>
+        <div id="pattern-guide"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="simulation.js"></script>
+  <script src="ui.js"></script>
+  <script src="music.js"></script>
+</body>
+</html>
