@@ -590,7 +590,7 @@ select:focus {
     font-size: 14px;
   }
 
-  var(--panel-width) {
+  #panel {
     width: 260px;
   }
 }
