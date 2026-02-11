@@ -21,7 +21,7 @@ const Simulation = (() => {
   // Current model & params
   let currentModel = 'gray-scott';
   let params = {};
-  let currentPresetName = 'Turing Pattern';
+  let currentPresetName = 'Mitosis';
 
   // Color map
   let currentColorMap = 'ocean';
@@ -45,7 +45,7 @@ const Simulation = (() => {
         { id: 'dt', label: 'Timestep', min: 0.1, max: 2.0, default: 1.0, step: 0.1 }
       ],
       presets: [
-        { name: 'Turing Pattern', f: 0.028, k: 0.062, desc: 'Classic Turing pattern — self-replicating spots.' },
+        { name: 'Mitosis', f: 0.028, k: 0.062, desc: 'Pulsing, self-replicating spots.' },
         { name: 'Coral', f: 0.062, k: 0.063, desc: 'Branching, coral-like growth.' },
         { name: 'Worms', f: 0.078, k: 0.061, desc: 'Writhing, worm-like stripes.' },
         { name: 'Maze', f: 0.029, k: 0.057, desc: 'Dense labyrinthine patterns.' },

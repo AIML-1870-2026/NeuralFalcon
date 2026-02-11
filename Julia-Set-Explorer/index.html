@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julia Set Explorer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="toolbar">
+        <div class="toolbar-group">
+            <label>Preset:
+                <select id="preset-select">
+                    <option value="">— Choose —</option>
+                    <option value="dendrite">Dendrite</option>
+                    <option value="rabbit">Douady Rabbit</option>
+                    <option value="sanmarco">San Marco</option>
+                    <option value="spiral">Spiral</option>
+                    <option value="lightning">Lightning</option>
+                </select>
+            </label>
+            <label>Color:
+                <select id="color-select">
+                    <option value="classic">Classic</option>
+                    <option value="fire">Fire</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="neon">Neon</option>
+                    <option value="grayscale">Grayscale</option>
+                    <option value="rainbow">Rainbow</option>
+                </select>
+            </label>
+            <button id="split-btn">Split View</button>
+            <button id="save-btn">Save PNG</button>
+            <button id="reset-btn">Reset View</button>
+        </div>
+    </div>
+
+    <div id="main">
+        <div id="canvas-wrap">
+            <canvas id="julia-canvas"></canvas>
+            <canvas id="mandelbrot-canvas" class="hidden"></canvas>
+        </div>
+        <div id="controls">
+            <h3>Controls</h3>
+            <label>c Real: <span id="c-real-val">-0.7269</span>
+                <input type="range" id="c-real" min="-2" max="2" step="0.001" value="-0.7269">
+            </label>
+            <label>c Imaginary: <span id="c-imag-val">0.1889</span>
+                <input type="range" id="c-imag" min="-2" max="2" step="0.001" value="0.1889">
+            </label>
+            <label>Max Iterations: <span id="iter-val">200</span>
+                <input type="range" id="max-iter" min="50" max="1000" step="10" value="200">
+            </label>
+            <div class="info">
+                <div id="zoom-info">Zoom: 1.00x</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-bar">
+        <span id="status-c">c = -0.7269 + 0.1889i</span>
+        <span id="status-zoom">Zoom 1.00x</span>
+        <span id="status-iter">200 iter</span>
+    </div>
+
+    <script src="julia.js"></script>
+</body>
+</html>
