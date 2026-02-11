@@ -132,7 +132,6 @@
         const dy = view.scale / h;
         const pal = palettes[palette];
         const logBase = 1 / Math.log(2);
-        const log2 = Math.log(2);
 
         for (let py = 0; py < h; py++) {
             const y0 = yMin + py * dy;
@@ -315,10 +314,16 @@
     });
 
     saveBtn.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = 'julia-set.png';
-        link.href = juliaCanvas.toDataURL('image/png');
-        link.click();
+        juliaCanvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'julia-set.png';
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 'image/png');
     });
 
     splitBtn.addEventListener('click', () => {
