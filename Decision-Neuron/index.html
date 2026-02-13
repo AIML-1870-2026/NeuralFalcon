@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Neuron — Should I Wear Matching Socks?</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Should I Wear Matching Socks?</h1>
+        <p class="subtitle">A perceptron-class binary classifier for foot fashion</p>
+    </header>
+
+    <main>
+        <section class="controls-panel">
+            <h2>Input Signals</h2>
+
+            <div class="slider-group">
+                <label>
+                    <span class="input-name">Event Formality</span>
+                    <span class="weight positive">w = +0.35</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="slider-0" min="0" max="10" step="0.1" value="5">
+                    <span class="slider-value" id="val-0">5.0</span>
+                </div>
+                <div class="slider-desc">Casual hangout (0) → Black-tie gala (10)</div>
+            </div>
+
+            <div class="slider-group">
+                <label>
+                    <span class="input-name">Sock Visibility Risk</span>
+                    <span class="weight positive">w = +0.25</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="slider-1" min="0" max="10" step="0.1" value="3">
+                    <span class="slider-value" id="val-1">3.0</span>
+                </div>
+                <div class="slider-desc">Boots all day (0) → Cross-legged on floor (10)</div>
+            </div>
+
+            <div class="slider-group">
+                <label>
+                    <span class="input-name">Laundry Desperation</span>
+                    <span class="weight negative">w = −0.30</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="slider-2" min="0" max="10" step="0.1" value="7">
+                    <span class="slider-value" id="val-2">7.0</span>
+                </div>
+                <div class="slider-desc">Fresh loads (0) → Digging in the hamper (10)</div>
+            </div>
+
+            <div class="slider-group">
+                <label>
+                    <span class="input-name">Company You're Keeping</span>
+                    <span class="weight positive">w = +0.30</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="slider-3" min="0" max="10" step="0.1" value="2">
+                    <span class="slider-value" id="val-3">2.0</span>
+                </div>
+                <div class="slider-desc">Home alone (0) → Impressing someone important (10)</div>
+            </div>
+
+            <div class="slider-group">
+                <label>
+                    <span class="input-name">Chaotic Energy Today</span>
+                    <span class="weight negative">w = −0.20</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="slider-4" min="0" max="10" step="0.1" value="4">
+                    <span class="slider-value" id="val-4">4.0</span>
+                </div>
+                <div class="slider-desc">Orderly citizen (0) → Agent of entropy (10)</div>
+            </div>
+
+            <div class="slider-group">
+                <label>
+                    <span class="input-name">Matching Pairs Available</span>
+                    <span class="weight positive">w = +0.15</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="slider-5" min="0" max="10" step="0.1" value="6">
+                    <span class="slider-value" id="val-5">6.0</span>
+                </div>
+                <div class="slider-desc">Sock graveyard (0) → Marie Kondo'd drawer (10)</div>
+            </div>
+
+            <div class="slider-group bias-slider">
+                <label>
+                    <span class="input-name">⚡ Bias</span>
+                    <span class="weight-info">b</span>
+                </label>
+                <div class="slider-row">
+                    <input type="range" id="bias-slider" min="-8" max="8" step="0.1" value="-2.5">
+                    <span class="slider-value" id="bias-val">−2.5</span>
+                </div>
+                <div class="slider-desc">Shifts decision threshold</div>
+            </div>
+
+            <div class="output-box" id="output-box">
+                <div class="output-label">Neuron Output</div>
+                <div class="output-value">σ(z) = <span id="output-sigma">0.198</span></div>
+                <div class="output-z">z = <span id="output-z">-1.40</span></div>
+                <div class="decision" id="decision">✗ MISMATCH IS FINE</div>
+            </div>
+        </section>
+
+        <section class="visualizer-panel">
+            <h2>Decision Boundary Visualizer</h2>
+
+            <div class="axis-selectors">
+                <label>
+                    X-Axis:
+                    <select id="axis-x">
+                        <option value="0" selected>Event Formality</option>
+                        <option value="1">Sock Visibility Risk</option>
+                        <option value="2">Laundry Desperation</option>
+                        <option value="3">Company You're Keeping</option>
+                        <option value="4">Chaotic Energy Today</option>
+                        <option value="5">Matching Pairs Available</option>
+                    </select>
+                </label>
+                <label>
+                    Y-Axis:
+                    <select id="axis-y">
+                        <option value="0">Event Formality</option>
+                        <option value="1">Sock Visibility Risk</option>
+                        <option value="2">Laundry Desperation</option>
+                        <option value="3" selected>Company You're Keeping</option>
+                        <option value="4">Chaotic Energy Today</option>
+                        <option value="5">Matching Pairs Available</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="heatmap-container">
+                <canvas id="heatmap" width="400" height="400"></canvas>
+                <div class="axis-label x-label" id="x-label">Event Formality →</div>
+                <div class="axis-label y-label" id="y-label">← Company You're Keeping</div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-bar"></div>
+                <div class="legend-labels">
+                    <span class="mismatch-label">Mismatch (σ≈0)</span>
+                    <span>Boundary (σ=0.5)</span>
+                    <span class="match-label">Match (σ≈1)</span>
+                </div>
+                <p class="legend-note"><span class="gold-dot">●</span> = You are here (drag me!)</p>
+            </div>
+
+            <div class="weight-table">
+                <h3>Weight Architecture</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Input</th>
+                            <th>Value</th>
+                            <th>Weight</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weight-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>NeuralFalcon — AIML 1870</p>
+    </footer>
+
+    <script src="neuron.js"></script>
+</body>
+</html>
