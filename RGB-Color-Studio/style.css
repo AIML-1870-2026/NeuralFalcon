@@ -393,46 +393,105 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* --- Compact Waveform (in studio panel) --- */
-.waveform-compact {
+/* --- Palette Audit --- */
+.palette-audit {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: 6px;
-  height: 56px;
-  padding: 6px 4px;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
 }
-.waveform-compact::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg, transparent, transparent 2px,
-    rgba(0,255,100,0.02) 2px, rgba(0,255,100,0.02) 4px
-  );
-  pointer-events: none;
-  border-radius: var(--radius);
-}
-.wf-bar {
-  flex: 1;
-  border-radius: 3px 3px 0 0;
-  transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
+
+.audit-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  transition: border-color var(--transition);
 }
-.wf-val {
-  font-size: 9px;
+.audit-row:hover { border-color: var(--border-hover); }
+
+.audit-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+.audit-swatch:hover { transform: scale(1.1); }
+
+.audit-info {
+  min-width: 90px;
+}
+.audit-hex {
+  font-size: 12px;
   font-weight: 700;
-  color: var(--text-primary);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-  padding-top: 2px;
+  font-variant-numeric: tabular-nums;
 }
+.audit-name {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.audit-scores {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.audit-score-pair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.audit-score-label {
+  color: var(--text-muted);
+  width: 52px;
+  flex-shrink: 0;
+}
+.audit-ratio {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+}
+.audit-ratio.ratio-pass { color: var(--pass-green); }
+.audit-ratio.ratio-warn { color: var(--warn-yellow); }
+.audit-ratio.ratio-fail { color: var(--fail-red); }
+.audit-level {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.audit-preview {
+  width: 48px;
+  height: 40px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.audit-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  min-width: 56px;
+  text-align: center;
+}
+.audit-badge.audit-pass { background: rgba(34,204,85,0.15); color: var(--pass-green); }
+.audit-badge.audit-warn { background: rgba(238,187,51,0.15); color: var(--warn-yellow); }
+.audit-badge.audit-fail { background: rgba(238,68,68,0.15); color: var(--fail-red); }
 
 /* --- Explorer details (collapsible in side panel) --- */
 .explorer-details {

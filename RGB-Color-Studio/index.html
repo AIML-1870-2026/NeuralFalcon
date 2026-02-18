@@ -19,8 +19,7 @@
     <span class="app-title">RGB Color Studio</span>
     <nav aria-label="Main navigation">
       <ul class="nav-tabs" role="tablist">
-        <li><button class="nav-tab" role="tab" aria-selected="true" aria-controls="panel-explorer" id="tab-explorer">Explorer</button></li>
-        <li><button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-palettes" id="tab-palettes">Palettes</button></li>
+        <li><button class="nav-tab" role="tab" aria-selected="true" aria-controls="panel-palettes" id="tab-palettes">Palettes</button></li>
         <li><button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-a11y" id="tab-a11y">Accessibility</button></li>
       </ul>
     </nav>
@@ -103,112 +102,94 @@
         <h3 class="section-title">Recent</h3>
         <div class="recent-colors" id="recentColors" role="list" aria-label="Recent colors"></div>
       </div>
+
+      <!-- Collapsible Explorer tools -->
+      <details class="explorer-details">
+        <summary class="section-title explorer-summary">Explorer Tools</summary>
+
+        <!-- Channel Mix -->
+        <div class="mix-playground">
+          <div class="mix-colors">
+            <div class="mix-color-picker">
+              <label for="mixColorA">A</label>
+              <div class="mix-swatch" id="mixSwatchA">
+                <input type="color" id="mixColorA" value="#ff4444" aria-label="Mix color A">
+              </div>
+            </div>
+            <span style="color:var(--text-muted); font-size:16px">&#8596;</span>
+            <div class="mix-color-picker">
+              <label for="mixColorB">B</label>
+              <div class="mix-swatch" id="mixSwatchB">
+                <input type="color" id="mixColorB" value="#4488ff" aria-label="Mix color B">
+              </div>
+            </div>
+          </div>
+          <div class="mix-strips" id="mixStrips">
+            <div class="mix-strip-row">
+              <span class="mix-strip-label">sRGB</span>
+              <div class="mix-strip" id="mixStripRgb"></div>
+            </div>
+            <div class="mix-strip-row">
+              <span class="mix-strip-label">HSL</span>
+              <div class="mix-strip" id="mixStripHsl"></div>
+            </div>
+            <div class="mix-strip-row">
+              <span class="mix-strip-label">OKLCh</span>
+              <div class="mix-strip" id="mixStripOklch"></div>
+            </div>
+          </div>
+          <button class="copy-btn" id="exportMixCSS" style="margin-top:8px">Copy CSS vars</button>
+        </div>
+
+        <!-- RGB Cube -->
+        <div class="rgb-cube-container" id="cubeContainer" aria-label="Interactive 3D RGB color cube">
+          <div class="rgb-cube" id="rgbCube">
+            <div class="cube-face front" style="background:linear-gradient(to right, rgba(0,255,0,0.3), rgba(255,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+            <div class="cube-face back" style="background:linear-gradient(to right, rgba(0,0,255,0.3), rgba(255,0,255,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+            <div class="cube-face right" style="background:linear-gradient(to right, rgba(255,255,0,0.3), rgba(255,0,255,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+            <div class="cube-face left" style="background:linear-gradient(to right, rgba(0,0,255,0.3), rgba(0,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+            <div class="cube-face top" style="background:linear-gradient(to right, rgba(0,255,0,0.3), rgba(255,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,255,0.3), rgba(255,0,255,0.3));"></div>
+            <div class="cube-face bottom" style="background:rgba(0,0,0,0.4)"></div>
+            <div class="cube-dot" id="cubeDot"></div>
+          </div>
+        </div>
+        <div style="text-align:center; font-size:10px; color:var(--text-muted); margin-top:4px">
+          Drag to rotate
+        </div>
+      </details>
     </aside>
 
     <!-- Main panel -->
     <main class="main-panel" id="main">
-      <!-- Explorer panel -->
-      <div class="tab-panel active" id="panel-explorer" role="tabpanel" aria-labelledby="tab-explorer">
-        <div class="sub-tabs" role="tablist" aria-label="Explorer views">
-          <button class="sub-tab" role="tab" aria-selected="true" aria-controls="sub-waveform" id="subtab-waveform">Waveform</button>
-          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-mixer" id="subtab-mixer">Channel Mix</button>
-          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-cube" id="subtab-cube">RGB Cube</button>
-        </div>
-
-        <!-- Waveform -->
-        <div class="sub-panel active" id="sub-waveform" role="tabpanel" aria-labelledby="subtab-waveform">
-          <div class="waveform" role="img" aria-label="RGB channel waveform display">
-            <div class="waveform-bar" id="wfR" style="background:var(--red)">
-              <span class="bar-value" style="color:var(--red)" id="wfRVal"></span>
-              <span class="bar-label" style="color:var(--red)">R</span>
-            </div>
-            <div class="waveform-bar" id="wfG" style="background:var(--green)">
-              <span class="bar-value" style="color:var(--green)" id="wfGVal"></span>
-              <span class="bar-label" style="color:var(--green)">G</span>
-            </div>
-            <div class="waveform-bar" id="wfB" style="background:var(--blue)">
-              <span class="bar-value" style="color:var(--blue)" id="wfBVal"></span>
-              <span class="bar-label" style="color:var(--blue)">B</span>
-            </div>
-          </div>
-          <div style="margin-top:12px; font-size:12px; color:var(--text-muted)">
-            <span id="wfHex"></span> &middot; <span id="wfPercent"></span>
-          </div>
-        </div>
-
-        <!-- Channel Mix -->
-        <div class="sub-panel" id="sub-mixer" role="tabpanel" aria-labelledby="subtab-mixer">
-          <div class="mix-playground">
-            <div class="mix-colors">
-              <div class="mix-color-picker">
-                <label for="mixColorA">Color A</label>
-                <div class="mix-swatch" id="mixSwatchA">
-                  <input type="color" id="mixColorA" value="#ff4444" aria-label="Mix color A">
-                </div>
-              </div>
-              <span style="color:var(--text-muted); font-size:20px">&#8596;</span>
-              <div class="mix-color-picker">
-                <label for="mixColorB">Color B</label>
-                <div class="mix-swatch" id="mixSwatchB">
-                  <input type="color" id="mixColorB" value="#4488ff" aria-label="Mix color B">
-                </div>
-              </div>
-            </div>
-            <div class="mix-strips" id="mixStrips">
-              <div class="mix-strip-row">
-                <span class="mix-strip-label">sRGB Linear Mix</span>
-                <div class="mix-strip" id="mixStripRgb"></div>
-              </div>
-              <div class="mix-strip-row">
-                <span class="mix-strip-label">HSL Mix</span>
-                <div class="mix-strip" id="mixStripHsl"></div>
-              </div>
-              <div class="mix-strip-row">
-                <span class="mix-strip-label">OKLCh Mix (Perceptually Uniform)</span>
-                <div class="mix-strip" id="mixStripOklch"></div>
-              </div>
-            </div>
-            <div class="palette-card-actions" style="margin-top:14px">
-              <button id="exportMixCSS">Copy as CSS vars</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- RGB Cube -->
-        <div class="sub-panel" id="sub-cube" role="tabpanel" aria-labelledby="subtab-cube">
-          <div class="rgb-cube-container" id="cubeContainer" aria-label="Interactive 3D RGB color cube">
-            <div class="rgb-cube" id="rgbCube">
-              <div class="cube-face front" style="background:linear-gradient(to right, rgba(0,255,0,0.3), rgba(255,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
-              <div class="cube-face back" style="background:linear-gradient(to right, rgba(0,0,255,0.3), rgba(255,0,255,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
-              <div class="cube-face right" style="background:linear-gradient(to right, rgba(255,255,0,0.3), rgba(255,0,255,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
-              <div class="cube-face left" style="background:linear-gradient(to right, rgba(0,0,255,0.3), rgba(0,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
-              <div class="cube-face top" style="background:linear-gradient(to right, rgba(0,255,0,0.3), rgba(255,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,255,0.3), rgba(255,0,255,0.3));"></div>
-              <div class="cube-face bottom" style="background:rgba(0,0,0,0.4)"></div>
-              <div class="cube-dot" id="cubeDot"></div>
-            </div>
-          </div>
-          <div style="text-align:center; margin-top:8px; font-size:11px; color:var(--text-muted)">
-            Drag to rotate. Current color shown as glowing dot.
-          </div>
-        </div>
-      </div>
-
-      <!-- Palettes panel -->
-      <div class="tab-panel" id="panel-palettes" role="tabpanel" aria-labelledby="tab-palettes">
+      <!-- Palettes panel (default active) -->
+      <div class="tab-panel active" id="panel-palettes" role="tabpanel" aria-labelledby="tab-palettes">
         <h2 class="section-title">Palette Generator</h2>
         <div class="palette-grid" id="paletteGrid"></div>
       </div>
 
       <!-- Accessibility panel -->
       <div class="tab-panel" id="panel-a11y" role="tabpanel" aria-labelledby="tab-a11y">
+        <!-- Active palette indicator -->
+        <div class="active-palette-banner" id="activePaletteBanner" style="display:none">
+          <span class="active-palette-label">Checking:</span>
+          <span class="active-palette-name" id="activePaletteName"></span>
+          <div class="active-palette-preview" id="activePalettePreview"></div>
+        </div>
+
         <div class="sub-tabs" role="tablist" aria-label="Accessibility views">
-          <button class="sub-tab" role="tab" aria-selected="true" aria-controls="sub-contrast" id="subtab-contrast">Contrast Checker</button>
+          <button class="sub-tab" role="tab" aria-selected="true" aria-controls="sub-audit" id="subtab-audit">Palette Audit</button>
+          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-contrast" id="subtab-contrast">Contrast Checker</button>
           <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-cvd" id="subtab-cvd">CVD Simulator</button>
           <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-matrix" id="subtab-matrix">Contrast Matrix</button>
         </div>
 
+        <!-- Palette Audit -->
+        <div class="sub-panel active" id="sub-audit" role="tabpanel" aria-labelledby="subtab-audit">
+          <div class="palette-audit" id="paletteAudit"></div>
+        </div>
+
         <!-- Contrast Checker -->
-        <div class="sub-panel active" id="sub-contrast" role="tabpanel" aria-labelledby="subtab-contrast">
+        <div class="sub-panel" id="sub-contrast" role="tabpanel" aria-labelledby="subtab-contrast">
           <div class="contrast-checker">
             <div class="contrast-pickers">
               <div class="contrast-picker">

@@ -117,22 +117,9 @@
     $('#contrastFgHex').textContent = hex.toUpperCase();
 
     // Update active views
-    updateWaveform();
     updateMixStrips();
     updateCube();
     updateContrastChecker();
-  }
-
-  // --- Compact Waveform ---
-  function updateWaveform() {
-    const { r, g, b } = state.color;
-    const maxH = 44; // max bar height in compact waveform
-    $('#wfR').style.height = Math.max(4, r / 255 * maxH) + 'px';
-    $('#wfG').style.height = Math.max(4, g / 255 * maxH) + 'px';
-    $('#wfB').style.height = Math.max(4, b / 255 * maxH) + 'px';
-    $('#wfRVal').textContent = r;
-    $('#wfGVal').textContent = g;
-    $('#wfBVal').textContent = b;
   }
 
   // --- Mix playground ---
@@ -282,8 +269,9 @@
       preview.appendChild(div);
     });
 
-    // Re-render CVD and matrix if accessibility panel is already open
+    // Re-render all a11y views if accessibility panel is already open
     if ($('#panel-a11y').classList.contains('active')) {
+      renderPaletteAudit();
       renderCVD();
       renderMatrix();
     }
@@ -296,7 +284,8 @@
     // Switch to Accessibility tab
     switchToTab('tab-a11y');
 
-    // Render CVD and matrix for this palette
+    // Render all a11y views for this palette
+    renderPaletteAudit();
     renderCVD();
     renderMatrix();
 
@@ -512,6 +501,64 @@
     container.appendChild(table);
   }
 
+  // --- Palette Audit (per-swatch WCAG breakdown) ---
+  function renderPaletteAudit() {
+    const container = $('#paletteAudit');
+    const palette = state.currentPalette.length > 0 ? state.currentPalette :
+      Palette.generate('analogous', state.color);
+
+    container.innerHTML = '';
+
+    if (palette.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted)">No palette loaded. Hover a palette card or click Check A11y ↗.</p>';
+      return;
+    }
+
+    const white = { r: 255, g: 255, b: 255 };
+    const black = { r: 0, g: 0, b: 0 };
+
+    palette.forEach((c) => {
+      const hex = ColorMath.rgbToHex(c.r, c.g, c.b);
+      const onWhite = WCAG.contrastRatio(c, white);
+      const onBlack = WCAG.contrastRatio(c, black);
+      const levW = WCAG.getLevel(onWhite);
+      const levB = WCAG.getLevel(onBlack);
+
+      const best = onWhite >= onBlack ? { ratio: onWhite, lev: levW, bg: '#ffffff', label: 'on white' }
+                                      : { ratio: onBlack, lev: levB, bg: '#000000', label: 'on black' };
+
+      const overallBadge = best.lev.aaaNormal ? 'AAA' : best.lev.aaNormal ? 'AA' : best.lev.aaLarge ? 'AA Large' : 'Fail';
+      const overallClass = best.lev.aaNormal ? 'audit-pass' : best.lev.aaLarge ? 'audit-warn' : 'audit-fail';
+
+      const row = document.createElement('div');
+      row.className = 'audit-row';
+      row.innerHTML = `
+        <button class="audit-swatch" style="background:${hex}" title="Use ${hex}" aria-label="Select color ${hex}"></button>
+        <div class="audit-info">
+          <div class="audit-hex">${hex}</div>
+          <div class="audit-name">${ColorMath.nearestNamedColor(c.r, c.g, c.b)}</div>
+        </div>
+        <div class="audit-scores">
+          <div class="audit-score-pair">
+            <span class="audit-score-label">on white</span>
+            <span class="audit-ratio ${levW.aaNormal ? 'ratio-pass' : levW.aaLarge ? 'ratio-warn' : 'ratio-fail'}">${onWhite.toFixed(2)}:1</span>
+            <span class="audit-level">${levW.aaaNormal ? 'AAA' : levW.aaNormal ? 'AA' : levW.aaLarge ? 'AA Lg' : 'Fail'}</span>
+          </div>
+          <div class="audit-score-pair">
+            <span class="audit-score-label">on black</span>
+            <span class="audit-ratio ${levB.aaNormal ? 'ratio-pass' : levB.aaLarge ? 'ratio-warn' : 'ratio-fail'}">${onBlack.toFixed(2)}:1</span>
+            <span class="audit-level">${levB.aaaNormal ? 'AAA' : levB.aaNormal ? 'AA' : levB.aaLarge ? 'AA Lg' : 'Fail'}</span>
+          </div>
+        </div>
+        <div class="audit-preview" style="background:${best.bg};color:${hex}">Aa</div>
+        <span class="audit-badge ${overallClass}">${overallBadge}</span>
+      `;
+
+      row.querySelector('.audit-swatch').addEventListener('click', () => setColor(c.r, c.g, c.b));
+      container.appendChild(row);
+    });
+  }
+
   // --- Recent colors ---
   function addToRecent(r, g, b) {
     const hex = ColorMath.rgbToHex(r, g, b);
@@ -559,7 +606,8 @@
 
         // Trigger renders for lazy panels
         if (panelId === 'panel-palettes') renderPalettes();
-        if (panelId === 'panel-a11y') { renderCVD(); renderMatrix(); updateContrastChecker(); }
+        if (panelId === 'panel-a11y') { renderPaletteAudit(); renderCVD(); renderMatrix(); updateContrastChecker(); }
+        if (panelId === 'sub-audit') renderPaletteAudit();
         if (panelId === 'sub-cvd') renderCVD();
         if (panelId === 'sub-matrix') renderMatrix();
         if (panelId === 'sub-contrast') updateContrastChecker();
