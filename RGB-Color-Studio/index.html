@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RGB Color Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Accessible mode banner -->
+  <div class="a11y-banner" id="a11yBanner" role="status">
+    <span aria-hidden="true">&#x1f6e1;</span> Accessible Palette Mode — only WCAG AA+ colors shown
+  </div>
+
+  <!-- Header / Nav -->
+  <header class="app-header">
+    <span class="app-title">RGB Color Studio</span>
+    <nav aria-label="Main navigation">
+      <ul class="nav-tabs" role="tablist">
+        <li><button class="nav-tab" role="tab" aria-selected="true" aria-controls="panel-explorer" id="tab-explorer">Explorer</button></li>
+        <li><button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-palettes" id="tab-palettes">Palettes</button></li>
+        <li><button class="nav-tab" role="tab" aria-selected="false" aria-controls="panel-a11y" id="tab-a11y">Accessibility</button></li>
+      </ul>
+    </nav>
+    <button class="a11y-toggle" id="a11yToggle" aria-pressed="false" title="Toggle Accessible Palette Mode (Alt+A)">
+      <span aria-hidden="true">&#x1f6e1;</span> A11y Mode
+    </button>
+  </header>
+
+  <!-- Main layout -->
+  <div class="app-layout">
+    <!-- Left: Studio panel -->
+    <aside class="studio-panel" aria-label="Color Studio">
+      <h2 class="section-title">Color Studio</h2>
+
+      <!-- Swatch -->
+      <div class="studio-swatch" id="studioSwatch" role="img" aria-label="Current color preview">
+        <span class="color-name" id="colorName"></span>
+      </div>
+
+      <!-- RGB Sliders -->
+      <div class="slider-group" role="group" aria-label="RGB channel sliders">
+        <div class="slider-row">
+          <label class="slider-label red" for="sliderR" id="labelR">R</label>
+          <div class="slider-track red">
+            <input type="range" id="sliderR" min="0" max="255" value="79" aria-labelledby="labelR">
+          </div>
+          <span class="slider-value" id="valR" aria-live="polite">79</span>
+        </div>
+        <div class="slider-row">
+          <label class="slider-label green" for="sliderG" id="labelG">G</label>
+          <div class="slider-track green">
+            <input type="range" id="sliderG" min="0" max="255" value="195" aria-labelledby="labelG">
+          </div>
+          <span class="slider-value" id="valG" aria-live="polite">195</span>
+        </div>
+        <div class="slider-row">
+          <label class="slider-label blue" for="sliderB" id="labelB">B</label>
+          <div class="slider-track blue">
+            <input type="range" id="sliderB" min="0" max="255" value="247" aria-labelledby="labelB">
+          </div>
+          <span class="slider-value" id="valB" aria-live="polite">247</span>
+        </div>
+      </div>
+
+      <!-- Hex input -->
+      <div class="input-group">
+        <div class="input-row">
+          <label for="hexInput">Hex</label>
+          <input type="text" id="hexInput" value="#4FC3F7" maxlength="7" spellcheck="false" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- HSL toggle + inputs -->
+      <button class="hsl-toggle" id="hslToggle" aria-pressed="false">Show HSL</button>
+      <div class="input-group" id="hslInputs" style="display:none">
+        <div class="input-row">
+          <label for="hslH">H</label>
+          <input type="number" id="hslH" min="0" max="360" step="1">
+        </div>
+        <div class="input-row">
+          <label for="hslS">S</label>
+          <input type="number" id="hslS" min="0" max="100" step="1">
+        </div>
+        <div class="input-row">
+          <label for="hslL">L</label>
+          <input type="number" id="hslL" min="0" max="100" step="1">
+        </div>
+      </div>
+
+      <!-- Copy buttons -->
+      <div class="copy-row">
+        <button class="copy-btn" data-format="hex" title="Copy hex value">hex</button>
+        <button class="copy-btn" data-format="rgb" title="Copy rgb() value">rgb</button>
+        <button class="copy-btn" data-format="hsl" title="Copy hsl() value">hsl</button>
+        <button class="copy-btn" data-format="oklch" title="Copy oklch() value">oklch</button>
+      </div>
+
+      <!-- Recent colors -->
+      <div>
+        <h3 class="section-title">Recent</h3>
+        <div class="recent-colors" id="recentColors" role="list" aria-label="Recent colors"></div>
+      </div>
+    </aside>
+
+    <!-- Main panel -->
+    <main class="main-panel" id="main">
+      <!-- Explorer panel -->
+      <div class="tab-panel active" id="panel-explorer" role="tabpanel" aria-labelledby="tab-explorer">
+        <div class="sub-tabs" role="tablist" aria-label="Explorer views">
+          <button class="sub-tab" role="tab" aria-selected="true" aria-controls="sub-waveform" id="subtab-waveform">Waveform</button>
+          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-mixer" id="subtab-mixer">Channel Mix</button>
+          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-cube" id="subtab-cube">RGB Cube</button>
+        </div>
+
+        <!-- Waveform -->
+        <div class="sub-panel active" id="sub-waveform" role="tabpanel" aria-labelledby="subtab-waveform">
+          <div class="waveform" role="img" aria-label="RGB channel waveform display">
+            <div class="waveform-bar" id="wfR" style="background:var(--red)">
+              <span class="bar-value" style="color:var(--red)" id="wfRVal"></span>
+              <span class="bar-label" style="color:var(--red)">R</span>
+            </div>
+            <div class="waveform-bar" id="wfG" style="background:var(--green)">
+              <span class="bar-value" style="color:var(--green)" id="wfGVal"></span>
+              <span class="bar-label" style="color:var(--green)">G</span>
+            </div>
+            <div class="waveform-bar" id="wfB" style="background:var(--blue)">
+              <span class="bar-value" style="color:var(--blue)" id="wfBVal"></span>
+              <span class="bar-label" style="color:var(--blue)">B</span>
+            </div>
+          </div>
+          <div style="margin-top:12px; font-size:12px; color:var(--text-muted)">
+            <span id="wfHex"></span> &middot; <span id="wfPercent"></span>
+          </div>
+        </div>
+
+        <!-- Channel Mix -->
+        <div class="sub-panel" id="sub-mixer" role="tabpanel" aria-labelledby="subtab-mixer">
+          <div class="mix-playground">
+            <div class="mix-colors">
+              <div class="mix-color-picker">
+                <label for="mixColorA">Color A</label>
+                <div class="mix-swatch" id="mixSwatchA">
+                  <input type="color" id="mixColorA" value="#ff4444" aria-label="Mix color A">
+                </div>
+              </div>
+              <span style="color:var(--text-muted); font-size:20px">&#8596;</span>
+              <div class="mix-color-picker">
+                <label for="mixColorB">Color B</label>
+                <div class="mix-swatch" id="mixSwatchB">
+                  <input type="color" id="mixColorB" value="#4488ff" aria-label="Mix color B">
+                </div>
+              </div>
+            </div>
+            <div class="mix-strips" id="mixStrips">
+              <div class="mix-strip-row">
+                <span class="mix-strip-label">sRGB Linear Mix</span>
+                <div class="mix-strip" id="mixStripRgb"></div>
+              </div>
+              <div class="mix-strip-row">
+                <span class="mix-strip-label">HSL Mix</span>
+                <div class="mix-strip" id="mixStripHsl"></div>
+              </div>
+              <div class="mix-strip-row">
+                <span class="mix-strip-label">OKLCh Mix (Perceptually Uniform)</span>
+                <div class="mix-strip" id="mixStripOklch"></div>
+              </div>
+            </div>
+            <div class="palette-card-actions" style="margin-top:14px">
+              <button id="exportMixCSS">Copy as CSS vars</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RGB Cube -->
+        <div class="sub-panel" id="sub-cube" role="tabpanel" aria-labelledby="subtab-cube">
+          <div class="rgb-cube-container" id="cubeContainer" aria-label="Interactive 3D RGB color cube">
+            <div class="rgb-cube" id="rgbCube">
+              <div class="cube-face front" style="background:linear-gradient(to right, rgba(0,255,0,0.3), rgba(255,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+              <div class="cube-face back" style="background:linear-gradient(to right, rgba(0,0,255,0.3), rgba(255,0,255,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+              <div class="cube-face right" style="background:linear-gradient(to right, rgba(255,255,0,0.3), rgba(255,0,255,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+              <div class="cube-face left" style="background:linear-gradient(to right, rgba(0,0,255,0.3), rgba(0,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(255,0,0,0.3));"></div>
+              <div class="cube-face top" style="background:linear-gradient(to right, rgba(0,255,0,0.3), rgba(255,255,0,0.3)), linear-gradient(to bottom, rgba(0,0,255,0.3), rgba(255,0,255,0.3));"></div>
+              <div class="cube-face bottom" style="background:rgba(0,0,0,0.4)"></div>
+              <div class="cube-dot" id="cubeDot"></div>
+            </div>
+          </div>
+          <div style="text-align:center; margin-top:8px; font-size:11px; color:var(--text-muted)">
+            Drag to rotate. Current color shown as glowing dot.
+          </div>
+        </div>
+      </div>
+
+      <!-- Palettes panel -->
+      <div class="tab-panel" id="panel-palettes" role="tabpanel" aria-labelledby="tab-palettes">
+        <h2 class="section-title">Palette Generator</h2>
+        <div class="palette-grid" id="paletteGrid"></div>
+      </div>
+
+      <!-- Accessibility panel -->
+      <div class="tab-panel" id="panel-a11y" role="tabpanel" aria-labelledby="tab-a11y">
+        <div class="sub-tabs" role="tablist" aria-label="Accessibility views">
+          <button class="sub-tab" role="tab" aria-selected="true" aria-controls="sub-contrast" id="subtab-contrast">Contrast Checker</button>
+          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-cvd" id="subtab-cvd">CVD Simulator</button>
+          <button class="sub-tab" role="tab" aria-selected="false" aria-controls="sub-matrix" id="subtab-matrix">Contrast Matrix</button>
+        </div>
+
+        <!-- Contrast Checker -->
+        <div class="sub-panel active" id="sub-contrast" role="tabpanel" aria-labelledby="subtab-contrast">
+          <div class="contrast-checker">
+            <div class="contrast-pickers">
+              <div class="contrast-picker">
+                <label for="contrastFg">Foreground</label>
+                <div class="picker-swatch" id="contrastFgSwatch">
+                  <input type="color" id="contrastFg" value="#4FC3F7">
+                </div>
+                <span class="contrast-picker-hex" id="contrastFgHex">#4FC3F7</span>
+              </div>
+              <div class="contrast-picker">
+                <label for="contrastBg">Background</label>
+                <div class="picker-swatch" id="contrastBgSwatch">
+                  <input type="color" id="contrastBg" value="#ffffff">
+                </div>
+                <span class="contrast-picker-hex" id="contrastBgHex">#FFFFFF</span>
+                <div class="quick-swap">
+                  <button id="swapWhite" title="Set background to white">White</button>
+                  <button id="swapBlack" title="Set background to black">Black</button>
+                  <button id="swapColors" title="Swap foreground and background">Swap</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="contrast-results" aria-live="polite">
+              <div>
+                <div class="contrast-ratio-display" id="contrastRatioDisplay">1.00:1</div>
+                <div class="contrast-apca" id="contrastApcaDisplay">APCA Lc: 0</div>
+              </div>
+            </div>
+
+            <div class="contrast-badges" id="contrastBadges" aria-label="WCAG conformance levels"></div>
+
+            <div class="contrast-preview" id="contrastPreview">
+              <p style="font-size:12px">Small text (12px) — The quick brown fox jumps over the lazy dog.</p>
+              <p style="font-size:16px">Body text (16px) — The quick brown fox jumps over the lazy dog.</p>
+              <p style="font-size:24px; font-weight:700">Large text (24px) — The quick brown fox.</p>
+            </div>
+
+            <button class="suggest-btn" id="suggestAccessible">Auto-suggest AA-passing color</button>
+          </div>
+        </div>
+
+        <!-- CVD Simulator -->
+        <div class="sub-panel" id="sub-cvd" role="tabpanel" aria-labelledby="subtab-cvd">
+          <div class="cvd-grid" id="cvdGrid"></div>
+        </div>
+
+        <!-- Contrast Matrix -->
+        <div class="sub-panel" id="sub-matrix" role="tabpanel" aria-labelledby="subtab-matrix">
+          <h3 class="section-title">Color Pair Contrast Matrix</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px">
+            Shows WCAG contrast ratios between all current palette swatches.
+          </p>
+          <div class="contrast-matrix-container" id="matrixContainer"></div>
+          <button class="copy-btn" id="exportMatrixCSV" style="margin-top:12px">Export as CSV</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Status bar -->
+  <footer class="status-bar" role="contentinfo">
+    <div class="status-item">
+      <span class="status-swatch" id="statusSwatch"></span>
+      <span id="statusHex"></span>
+    </div>
+    <div class="status-item" id="statusRgb"></div>
+    <div class="status-item" id="statusWcag"></div>
+    <div class="status-item" id="statusName"></div>
+  </footer>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Keyboard help modal -->
+  <div class="modal-overlay" id="helpModal" role="dialog" aria-label="Keyboard shortcuts">
+    <div class="modal">
+      <button class="modal-close" id="helpClose" aria-label="Close help">&times;</button>
+      <h2>Keyboard Shortcuts</h2>
+      <ul class="shortcut-list">
+        <li><span>Toggle Accessible Mode</span> <span class="shortcut-key">Alt+A</span></li>
+        <li><span>Focus Contrast Checker</span> <span class="shortcut-key">Alt+C</span></li>
+        <li><span>Focus Studio</span> <span class="shortcut-key">Alt+S</span></li>
+        <li><span>Focus Palettes</span> <span class="shortcut-key">Alt+P</span></li>
+        <li><span>Copy hex (swatch focused)</span> <span class="shortcut-key">Ctrl+C</span></li>
+        <li><span>This help</span> <span class="shortcut-key">?</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Live region for screen readers -->
+  <div class="sr-only" aria-live="polite" id="srAnnounce"></div>
+
+  <script src="color-math.js"></script>
+  <script src="wcag.js"></script>
+  <script src="cvd.js"></script>
+  <script src="palette.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
