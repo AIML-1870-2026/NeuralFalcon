@@ -587,6 +587,61 @@
     });
   }
 
+  // --- Global CVD simulation widget ---
+  function initCVDWidget() {
+    const btn = $('#cvdToggleBtn');
+    const dropdown = $('#cvdDropdown');
+    const label = $('#cvdCurrentLabel');
+
+    const filterMap = {
+      none:          '',
+      protanopia:    'url(#cvd-protanopia)',
+      deuteranopia:  'url(#cvd-deuteranopia)',
+      tritanopia:    'url(#cvd-tritanopia)',
+      achromatopsia: 'url(#cvd-achromatopsia)'
+    };
+    const labelMap = {
+      none:          'Normal',
+      protanopia:    'Protanopia',
+      deuteranopia:  'Deuteranopia',
+      tritanopia:    'Tritanopia',
+      achromatopsia: 'Achromato.'
+    };
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = dropdown.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open);
+    });
+
+    $$('.cvd-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const type = opt.dataset.cvd;
+        $$('.cvd-option').forEach(o => {
+          o.classList.remove('active');
+          o.setAttribute('aria-selected', 'false');
+        });
+        opt.classList.add('active');
+        opt.setAttribute('aria-selected', 'true');
+
+        document.documentElement.style.filter = filterMap[type];
+        label.textContent = labelMap[type];
+        btn.classList.toggle('active', type !== 'none');
+
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        announce('Color vision simulation: ' + labelMap[type]);
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!$('#cvdWidget').contains(e.target)) {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+
   // --- Tab navigation ---
   function initTabs(tabSelector) {
     const tabs = $$(tabSelector);
@@ -780,6 +835,9 @@
     // Tabs
     initTabs('.nav-tab');
     initTabs('#panel-a11y .sub-tab');
+
+    // CVD widget
+    initCVDWidget();
 
     // Cube drag
     initCubeDrag();
