@@ -137,8 +137,8 @@ body {
 }
 
 .studio-panel {
-  width: 300px;
-  min-width: 300px;
+  flex: 1;
+  min-width: 280px;
   border-right: 1px solid var(--border);
   background: var(--bg-secondary);
   padding: 20px;
@@ -393,80 +393,91 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-/* --- Explorer: Waveform --- */
-.waveform {
+/* --- Compact Waveform (in studio panel) --- */
+.waveform-compact {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
-  height: 200px;
-  padding: 20px;
+  gap: 6px;
+  height: 56px;
+  padding: 6px 4px;
   background: var(--bg-card);
   border-radius: var(--radius);
   border: 1px solid var(--border);
-}
-.waveform-bar {
-  flex: 1;
-  border-radius: 4px 4px 0 0;
-  transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
-  min-width: 40px;
+  overflow: hidden;
 }
-.waveform-bar .bar-label {
-  position: absolute;
-  bottom: -24px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 11px;
-  white-space: nowrap;
-}
-.waveform-bar .bar-value {
-  position: absolute;
-  top: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* Phosphor-green scanline overlay */
-.waveform::after {
+.waveform-compact::after {
   content: '';
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,255,100,0.015) 2px,
-    rgba(0,255,100,0.015) 4px
+    0deg, transparent, transparent 2px,
+    rgba(0,255,100,0.02) 2px, rgba(0,255,100,0.02) 4px
   );
   pointer-events: none;
   border-radius: var(--radius);
 }
-.waveform { position: relative; overflow: hidden; }
+.wf-bar {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.wf-val {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  padding-top: 2px;
+}
 
-/* --- Explorer: Mix playground --- */
+/* --- Explorer details (collapsible in side panel) --- */
+.explorer-details {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.explorer-summary {
+  cursor: pointer;
+  user-select: none;
+  border-bottom: none;
+  margin-bottom: 8px;
+  padding-bottom: 0;
+}
+.explorer-summary::-webkit-details-marker,
+.explorer-summary::marker {
+  color: var(--text-muted);
+}
+.explorer-details[open] .explorer-summary {
+  margin-bottom: 12px;
+}
+
+/* --- Mix playground (compact for side panel) --- */
 .mix-playground {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 .mix-colors {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 .mix-color-picker {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
+.mix-color-picker label { font-size: 10px; color: var(--text-muted); }
 .mix-swatch {
-  width: 60px;
-  height: 60px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   cursor: pointer;
@@ -484,19 +495,19 @@ body {
 .mix-strips {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
-.mix-strip-row { display: flex; flex-direction: column; gap: 4px; }
+.mix-strip-row { display: flex; flex-direction: column; gap: 2px; }
 .mix-strip-label {
-  font-size: 11px;
+  font-size: 9px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 .mix-strip {
   display: flex;
-  height: 36px;
-  border-radius: 4px;
+  height: 24px;
+  border-radius: 3px;
   overflow: hidden;
   border: 1px solid var(--border);
 }
@@ -521,40 +532,41 @@ body {
   z-index: 10;
 }
 
-/* --- Explorer: RGB Cube --- */
+/* --- RGB Cube (compact for side panel) --- */
 .rgb-cube-container {
-  perspective: 600px;
+  perspective: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 300px;
+  height: 200px;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   cursor: grab;
   user-select: none;
+  margin-top: 12px;
 }
 .rgb-cube-container:active { cursor: grabbing; }
 .rgb-cube {
-  width: 160px;
-  height: 160px;
+  width: 110px;
+  height: 110px;
   position: relative;
   transform-style: preserve-3d;
   transition: transform 0.1s ease-out;
 }
 .cube-face {
   position: absolute;
-  width: 160px;
-  height: 160px;
+  width: 110px;
+  height: 110px;
   border: 1px solid rgba(255,255,255,0.15);
   opacity: 0.6;
 }
-.cube-face.front  { transform: translateZ(80px); }
-.cube-face.back   { transform: rotateY(180deg) translateZ(80px); }
-.cube-face.right  { transform: rotateY(90deg) translateZ(80px); }
-.cube-face.left   { transform: rotateY(-90deg) translateZ(80px); }
-.cube-face.top    { transform: rotateX(90deg) translateZ(80px); }
-.cube-face.bottom { transform: rotateX(-90deg) translateZ(80px); }
+.cube-face.front  { transform: translateZ(55px); }
+.cube-face.back   { transform: rotateY(180deg) translateZ(55px); }
+.cube-face.right  { transform: rotateY(90deg) translateZ(55px); }
+.cube-face.left   { transform: rotateY(-90deg) translateZ(55px); }
+.cube-face.top    { transform: rotateX(90deg) translateZ(55px); }
+.cube-face.bottom { transform: rotateX(-90deg) translateZ(55px); }
 
 .cube-dot {
   position: absolute;
@@ -570,6 +582,43 @@ body {
   font-size: 10px;
   color: var(--text-muted);
   font-weight: 700;
+}
+
+/* --- Active palette banner (in a11y panel) --- */
+.active-palette-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.active-palette-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.active-palette-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.active-palette-preview {
+  display: flex;
+  gap: 2px;
+  border-radius: 3px;
+  overflow: hidden;
+  flex: 1;
+  min-width: 120px;
+  height: 24px;
+}
+.active-palette-preview .mini-swatch {
+  flex: 1;
+  min-width: 0;
 }
 
 /* --- Palette cards --- */

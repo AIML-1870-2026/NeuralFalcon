@@ -8,7 +8,8 @@
     color: { r: 79, g: 195, b: 247 },
     recentColors: JSON.parse(localStorage.getItem('rcs-recent') || '[]'),
     accessibleMode: localStorage.getItem('rcs-a11y') === 'true',
-    currentPalette: [], // most recently generated palette for matrix/CVD
+    currentPalette: [],
+    currentPaletteName: '',
     history: [],
     historyIndex: -1
   };
@@ -122,24 +123,25 @@
     updateContrastChecker();
   }
 
-  // --- Waveform ---
+  // --- Compact Waveform ---
   function updateWaveform() {
     const { r, g, b } = state.color;
-    const maxH = 160; // max bar height in px
-    $('#wfR').style.height = (r / 255 * maxH) + 'px';
-    $('#wfG').style.height = (g / 255 * maxH) + 'px';
-    $('#wfB').style.height = (b / 255 * maxH) + 'px';
+    const maxH = 44; // max bar height in compact waveform
+    $('#wfR').style.height = Math.max(4, r / 255 * maxH) + 'px';
+    $('#wfG').style.height = Math.max(4, g / 255 * maxH) + 'px';
+    $('#wfB').style.height = Math.max(4, b / 255 * maxH) + 'px';
     $('#wfRVal').textContent = r;
     $('#wfGVal').textContent = g;
     $('#wfBVal').textContent = b;
-    $('#wfHex').textContent = ColorMath.rgbToHex(r, g, b).toUpperCase();
-    $('#wfPercent').textContent = `${Math.round(r/2.55)}% / ${Math.round(g/2.55)}% / ${Math.round(b/2.55)}%`;
   }
 
   // --- Mix playground ---
   function updateMixStrips() {
-    const hexA = $('#mixColorA').value;
-    const hexB = $('#mixColorB').value;
+    const mixA = $('#mixColorA');
+    const mixB = $('#mixColorB');
+    if (!mixA || !mixB) return;
+    const hexA = mixA.value;
+    const hexB = mixB.value;
     const cA = ColorMath.hexToRgb(hexA.replace('#', ''));
     const cB = ColorMath.hexToRgb(hexB.replace('#', ''));
     if (!cA || !cB) return;
@@ -147,7 +149,7 @@
     $('#mixSwatchA').style.backgroundColor = hexA;
     $('#mixSwatchB').style.backgroundColor = hexB;
 
-    const steps = 20;
+    const steps = 16;
     const strips = [
       { el: '#mixStripRgb', fn: ColorMath.lerpRgb },
       { el: '#mixStripHsl', fn: ColorMath.lerpHsl },
@@ -179,14 +181,17 @@
   let cubeRotX = -25, cubeRotY = 40, cubeDragging = false, cubeLastX, cubeLastY;
 
   function updateCube() {
-    const { r, g, b } = state.color;
     const cube = $('#rgbCube');
+    if (!cube) return;
+    const { r, g, b } = state.color;
     cube.style.transform = `rotateX(${cubeRotX}deg) rotateY(${cubeRotY}deg)`;
 
     const dot = $('#cubeDot');
-    const x = (r / 255) * 160;
-    const y = (1 - g / 255) * 160; // y inverted
-    const z = (b / 255) * 160 - 80;
+    const size = 110;
+    const half = 55;
+    const x = (r / 255) * size;
+    const y = (1 - g / 255) * size;
+    const z = (b / 255) * size - half;
     const hex = ColorMath.rgbToHex(r, g, b);
     dot.style.left = x + 'px';
     dot.style.top = y + 'px';
@@ -197,6 +202,7 @@
 
   function initCubeDrag() {
     const container = $('#cubeContainer');
+    if (!container) return;
     container.addEventListener('pointerdown', (e) => {
       cubeDragging = true;
       cubeLastX = e.clientX;
@@ -256,10 +262,66 @@
     preview.style.color = fgHex;
   }
 
+  // --- Update accessibility panel palette data (no tab switch) ---
+  function updateA11yPalette(colors, paletteName) {
+    state.currentPalette = colors;
+    state.currentPaletteName = paletteName;
+
+    // Show the active palette banner
+    const banner = $('#activePaletteBanner');
+    banner.style.display = 'flex';
+    $('#activePaletteName').textContent = paletteName;
+
+    // Render mini preview swatches
+    const preview = $('#activePalettePreview');
+    preview.innerHTML = '';
+    colors.forEach(c => {
+      const div = document.createElement('div');
+      div.className = 'mini-swatch';
+      div.style.backgroundColor = ColorMath.rgbToHex(c.r, c.g, c.b);
+      preview.appendChild(div);
+    });
+
+    // Re-render CVD and matrix if accessibility panel is already open
+    if ($('#panel-a11y').classList.contains('active')) {
+      renderCVD();
+      renderMatrix();
+    }
+  }
+
+  // --- Load palette into accessibility panel (with tab switch) ---
+  function loadPaletteIntoA11y(colors, paletteName) {
+    updateA11yPalette(colors, paletteName);
+
+    // Switch to Accessibility tab
+    switchToTab('tab-a11y');
+
+    // Render CVD and matrix for this palette
+    renderCVD();
+    renderMatrix();
+
+    announce(`Loaded ${paletteName} palette into accessibility checker`);
+  }
+
+  // --- Switch main tab programmatically ---
+  function switchToTab(tabId) {
+    const tabs = $$('.nav-tab');
+    tabs.forEach(t => {
+      t.setAttribute('aria-selected', 'false');
+      const p = document.getElementById(t.getAttribute('aria-controls'));
+      if (p) p.classList.remove('active');
+    });
+    const tab = document.getElementById(tabId);
+    tab.setAttribute('aria-selected', 'true');
+    const panel = document.getElementById(tab.getAttribute('aria-controls'));
+    if (panel) panel.classList.add('active');
+  }
+
   // --- Palette generation ---
   function renderPalettes() {
     const grid = $('#paletteGrid');
     grid.innerHTML = '';
+    let firstPaletteLoaded = false;
 
     Object.entries(Palette.types).forEach(([key, info]) => {
       const colors = Palette.generate(key, state.color);
@@ -275,13 +337,17 @@
         <div class="palette-card-desc">${info.desc}</div>
         <div class="palette-swatches"></div>
         <div class="palette-card-actions">
+          <button class="check-a11y-btn" data-key="${key}">Check A11y ↗</button>
           <button class="export-css" data-key="${key}">Copy CSS</button>
           <button class="export-tw" data-key="${key}">Copy Tailwind</button>
         </div>
       `;
 
+      // Auto-send to accessibility when hovering a palette card
+      card.addEventListener('mouseenter', () => updateA11yPalette(colors, info.name));
+
       const swatchRow = card.querySelector('.palette-swatches');
-      colors.forEach((c, i) => {
+      colors.forEach((c) => {
         const hex = ColorMath.rgbToHex(c.r, c.g, c.b);
         const btn = document.createElement('button');
         btn.className = 'palette-swatch';
@@ -307,6 +373,11 @@
         swatchRow.appendChild(btn);
       });
 
+      // Check A11y button — loads this palette into the accessibility panel
+      card.querySelector('.check-a11y-btn').addEventListener('click', () => {
+        loadPaletteIntoA11y(colors, info.name);
+      });
+
       // Export buttons
       card.querySelector('.export-css').addEventListener('click', () => {
         const css = Palette.exportCSS(colors);
@@ -318,10 +389,13 @@
       });
 
       grid.appendChild(card);
-    });
 
-    // Store the first palette for the contrast matrix
-    state.currentPalette = Palette.generate('analogous', state.color);
+      // Auto-send first palette to accessibility on render
+      if (!firstPaletteLoaded) {
+        firstPaletteLoaded = true;
+        updateA11yPalette(colors, info.name);
+      }
+    });
   }
 
   // --- CVD simulator ---
@@ -329,7 +403,6 @@
     const grid = $('#cvdGrid');
     grid.innerHTML = '';
 
-    // Use the current palette (analogous of active color by default)
     const palette = state.currentPalette.length > 0 ? state.currentPalette :
       Palette.generate('analogous', state.color);
 
@@ -391,7 +464,6 @@
     const table = document.createElement('table');
     table.className = 'contrast-matrix';
 
-    // Header row
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     headerRow.innerHTML = '<th></th>';
@@ -406,7 +478,6 @@
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // Body
     const tbody = document.createElement('tbody');
     palette.forEach((rowC, i) => {
       const tr = document.createElement('tr');
@@ -421,11 +492,11 @@
         const td = document.createElement('td');
         if (i === j) {
           td.className = 'self';
-          td.textContent = '—';
+          td.textContent = '\u2014';
         } else {
           const ratio = WCAG.contrastRatio(rowC, colC);
           td.textContent = ratio.toFixed(1);
-          td.title = `${ratio.toFixed(2)}:1 — ${ratio >= 7 ? 'AAA' : ratio >= 4.5 ? 'AA' : ratio >= 3 ? 'AA Large' : 'Fail'}`;
+          td.title = `${ratio.toFixed(2)}:1 \u2014 ${ratio >= 7 ? 'AAA' : ratio >= 4.5 ? 'AA' : ratio >= 3 ? 'AA Large' : 'Fail'}`;
           if (ratio >= 7) td.className = 'ratio-aaa';
           else if (ratio >= 4.5) td.className = 'ratio-aa';
           else if (ratio >= 3) td.className = 'ratio-aa-large';
@@ -470,12 +541,12 @@
   }
 
   // --- Tab navigation ---
-  function initTabs(tabSelector, panelPrefix) {
+  function initTabs(tabSelector) {
     const tabs = $$(tabSelector);
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         const panelId = tab.getAttribute('aria-controls');
-        // Deselect all
+        // Deselect sibling tabs
         tabs.forEach(t => {
           t.setAttribute('aria-selected', 'false');
           const p = document.getElementById(t.getAttribute('aria-controls'));
@@ -488,7 +559,8 @@
 
         // Trigger renders for lazy panels
         if (panelId === 'panel-palettes') renderPalettes();
-        if (panelId === 'panel-a11y' || panelId === 'sub-cvd') renderCVD();
+        if (panelId === 'panel-a11y') { renderCVD(); renderMatrix(); updateContrastChecker(); }
+        if (panelId === 'sub-cvd') renderCVD();
         if (panelId === 'sub-matrix') renderMatrix();
         if (panelId === 'sub-contrast') updateContrastChecker();
       });
@@ -502,7 +574,6 @@
     a11yToggle.setAttribute('aria-pressed', on);
     a11yBanner.classList.toggle('active', on);
     announce(on ? 'Accessible palette mode enabled' : 'Accessible palette mode disabled');
-    // Re-render palettes if visible
     if ($('#panel-palettes').classList.contains('active')) renderPalettes();
   }
 
@@ -513,11 +584,10 @@
       slider.addEventListener('input', () => {
         setColor(+sliderR.value, +sliderG.value, +sliderB.value);
       });
-      // Keyboard: shift+arrow for ±10
       slider.addEventListener('keydown', (e) => {
         if (e.shiftKey && (e.key === 'ArrowRight' || e.key === 'ArrowUp')) {
           e.preventDefault();
-          slider.value = Math.min(255, +slider.value + 9); // browser already does +1
+          slider.value = Math.min(255, +slider.value + 9);
           setColor(+sliderR.value, +sliderG.value, +sliderB.value);
         }
         if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowDown')) {
@@ -621,22 +691,28 @@
     });
 
     // Mix playground
-    $('#mixColorA').addEventListener('input', updateMixStrips);
-    $('#mixColorB').addEventListener('input', updateMixStrips);
-    $('#exportMixCSS').addEventListener('click', () => {
-      const hexA = $('#mixColorA').value;
-      const hexB = $('#mixColorB').value;
-      const cA = ColorMath.hexToRgb(hexA.replace('#', ''));
-      const cB = ColorMath.hexToRgb(hexB.replace('#', ''));
-      if (!cA || !cB) return;
-      const steps = 20;
-      const colors = [];
-      for (let i = 0; i <= steps; i++) {
-        colors.push(ColorMath.lerpOklch(cA, cB, i / steps));
-      }
-      const css = Palette.exportCSS(colors, 'mix');
-      navigator.clipboard.writeText(css).then(() => showToast('Mix CSS variables copied'));
-    });
+    const mixA = $('#mixColorA');
+    const mixB = $('#mixColorB');
+    if (mixA) mixA.addEventListener('input', updateMixStrips);
+    if (mixB) mixB.addEventListener('input', updateMixStrips);
+
+    const exportMix = $('#exportMixCSS');
+    if (exportMix) {
+      exportMix.addEventListener('click', () => {
+        const hexA = $('#mixColorA').value;
+        const hexB = $('#mixColorB').value;
+        const cA = ColorMath.hexToRgb(hexA.replace('#', ''));
+        const cB = ColorMath.hexToRgb(hexB.replace('#', ''));
+        if (!cA || !cB) return;
+        const steps = 16;
+        const colors = [];
+        for (let i = 0; i <= steps; i++) {
+          colors.push(ColorMath.lerpOklch(cA, cB, i / steps));
+        }
+        const css = Palette.exportCSS(colors, 'mix');
+        navigator.clipboard.writeText(css).then(() => showToast('Mix CSS variables copied'));
+      });
+    }
 
     // Export matrix CSV
     $('#exportMatrixCSV').addEventListener('click', () => {
@@ -654,18 +730,16 @@
     });
 
     // Tabs
-    initTabs('.nav-tab', 'panel');
-    initTabs('#panel-explorer .sub-tab', 'sub');
-    initTabs('#panel-a11y .sub-tab', 'sub');
+    initTabs('.nav-tab');
+    initTabs('#panel-a11y .sub-tab');
 
     // Cube drag
     initCubeDrag();
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      // Don't intercept when typing in inputs
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        if (e.key === '?' || e.altKey) { /* allow shortcuts */ } else return;
+        if (e.key === '?' || e.altKey) { /* allow */ } else return;
       }
 
       if (e.altKey && e.key.toLowerCase() === 'a') {
@@ -674,7 +748,7 @@
       }
       if (e.altKey && e.key.toLowerCase() === 'c') {
         e.preventDefault();
-        document.getElementById('tab-a11y').click();
+        switchToTab('tab-a11y');
         document.getElementById('subtab-contrast').click();
       }
       if (e.altKey && e.key.toLowerCase() === 's') {
@@ -683,7 +757,7 @@
       }
       if (e.altKey && e.key.toLowerCase() === 'p') {
         e.preventDefault();
-        document.getElementById('tab-palettes').click();
+        switchToTab('tab-palettes');
       }
       if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
@@ -710,7 +784,7 @@
     setColor(state.color.r, state.color.g, state.color.b, false);
     pushHistory();
 
-    // Render palettes on first visit
+    // Render palettes (default view)
     renderPalettes();
   }
 
