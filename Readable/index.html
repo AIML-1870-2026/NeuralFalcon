@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readable — Color Contrast Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>Readable</h1>
+  <span>Color Contrast Analyzer</span>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT CONTROLS -->
+  <div>
+    <!-- BG Color -->
+    <div class="panel" style="margin-bottom:1rem">
+      <div class="panel-title">Background Color</div>
+      <div class="color-group">
+        <div class="rgb-row">
+          <label>R</label>
+          <input type="range" id="r-bg" min="0" max="255" value="255">
+          <input type="number" id="r-bg-n" min="0" max="255" value="255">
+        </div>
+        <div class="rgb-row">
+          <label>G</label>
+          <input type="range" id="g-bg" min="0" max="255" value="255">
+          <input type="number" id="g-bg-n" min="0" max="255" value="255">
+        </div>
+        <div class="rgb-row">
+          <label>B</label>
+          <input type="range" id="b-bg" min="0" max="255" value="255">
+          <input type="number" id="b-bg-n" min="0" max="255" value="255">
+        </div>
+        <div class="color-swatch" id="bg-swatch"></div>
+      </div>
+    </div>
+
+    <!-- Text Color -->
+    <div class="panel" style="margin-bottom:1rem">
+      <div class="panel-title">Text Color</div>
+      <div class="color-group">
+        <div class="rgb-row">
+          <label>R</label>
+          <input type="range" id="r-text" min="0" max="255" value="0">
+          <input type="number" id="r-text-n" min="0" max="255" value="0">
+        </div>
+        <div class="rgb-row">
+          <label>G</label>
+          <input type="range" id="g-text" min="0" max="255" value="0">
+          <input type="number" id="g-text-n" min="0" max="255" value="0">
+        </div>
+        <div class="rgb-row">
+          <label>B</label>
+          <input type="range" id="b-text" min="0" max="255" value="0">
+          <input type="number" id="b-text-n" min="0" max="255" value="0">
+        </div>
+        <div class="color-swatch" id="text-swatch"></div>
+      </div>
+    </div>
+
+    <!-- Text Size -->
+    <div class="panel">
+      <div class="panel-title">Text Size</div>
+      <div class="size-row">
+        <input type="range" id="size-slider" min="10" max="72" value="18">
+        <input type="number" id="size-num" min="10" max="72" value="18">
+        <span style="font-size:0.68rem;color:var(--muted)">px</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- Display Area -->
+    <div id="display-area">
+      <p id="sample-text">The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs.</p>
+    </div>
+
+    <!-- Contrast Stats -->
+    <div class="panel">
+      <div class="panel-title">Contrast Analysis</div>
+      <div class="contrast-grid">
+        <div class="contrast-stat">
+          <div class="val" id="ratio-display">21.00:1</div>
+          <div class="lbl">Contrast Ratio</div>
+        </div>
+        <div class="contrast-stat">
+          <div class="val" id="lum-bg-display">1.000</div>
+          <div class="lbl">BG Luminance</div>
+        </div>
+        <div class="contrast-stat">
+          <div class="val" id="lum-text-display">0.000</div>
+          <div class="lbl">Text Luminance</div>
+        </div>
+      </div>
+
+      <div class="wcag-row">
+        <div class="wcag-badge pass" id="badge-aa">
+          <span class="badge-label">AA Normal (4.5:1)</span>
+          <span class="badge-status">✓ Pass</span>
+        </div>
+        <div class="wcag-badge pass" id="badge-aa-large">
+          <span class="badge-label">AA Large (3:1)</span>
+          <span class="badge-status">✓ Pass</span>
+        </div>
+        <div class="wcag-badge pass" id="badge-aaa">
+          <span class="badge-label">AAA Normal (7:1)</span>
+          <span class="badge-status">✓ Pass</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vision Simulation -->
+    <div class="panel">
+      <div class="panel-title">Vision Type Simulation</div>
+      <div class="vision-grid">
+        <button class="vision-btn active" data-vision="normal">Normal</button>
+        <button class="vision-btn" data-vision="protanopia">Protanopia<br><span style="opacity:.6">red-blind</span></button>
+        <button class="vision-btn" data-vision="deuteranopia">Deuteranopia<br><span style="opacity:.6">green-blind</span></button>
+        <button class="vision-btn" data-vision="tritanopia">Tritanopia<br><span style="opacity:.6">blue-blind</span></button>
+        <button class="vision-btn" data-vision="monochromacy">Mono-<br>chromacy</button>
+      </div>
+      <div class="vision-note" id="vision-note" style="display:none">
+        ⚠ Color adjustments are only available in Normal vision mode.
+      </div>
+    </div>
+
+    <!-- Preset Color Schemes -->
+    <div class="panel">
+      <div class="panel-title">Preset Color Schemes</div>
+      <div class="preset-grid" id="preset-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="readable.js"></script>
+</body>
+</html>
