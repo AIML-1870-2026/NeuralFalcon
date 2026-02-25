@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack — NeuralFalcon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Roboto+Mono:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- HUD -->
+    <div class="hud">
+        <span class="hud-item" id="hud-balance">Balance: $500</span>
+        <span class="hud-item" id="hud-bet">Bet: $0</span>
+    </div>
+
+    <!-- Table -->
+    <main class="table">
+
+        <!-- Dealer Zone -->
+        <section class="zone dealer-zone" id="dealer-zone">
+            <div class="zone-label">
+                Dealer
+                <span class="score-badge" id="dealer-score"></span>
+            </div>
+            <div class="card-row" id="dealer-cards"></div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <svg class="divider-arc" viewBox="0 0 700 44" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <path id="arc" d="M 60 40 Q 350 8 640 40"/>
+                </defs>
+                <text fill="rgba(255,255,255,0.18)" font-size="12" font-family="Lato, sans-serif" letter-spacing="2.5">
+                    <textPath href="#arc" startOffset="50%" text-anchor="middle">
+                        BLACKJACK PAYS 3 TO 2 &bull; DEALER MUST STAND ON 17
+                    </textPath>
+                </text>
+            </svg>
+            <div class="status-message" id="status-message"></div>
+        </div>
+
+        <!-- Player Zone -->
+        <section class="zone player-zone" id="player-zone">
+            <div class="zone-label">
+                You
+                <span class="score-badge" id="player-score"></span>
+            </div>
+            <div class="card-row" id="player-cards"></div>
+        </section>
+
+        <!-- Controls -->
+        <section class="controls">
+
+            <!-- Betting state -->
+            <div id="betting-controls">
+                <div class="chip-tray">
+                    <button class="chip chip-5"   onclick="placeBet(5)">$5</button>
+                    <button class="chip chip-10"  onclick="placeBet(10)">$10</button>
+                    <button class="chip chip-25"  onclick="placeBet(25)">$25</button>
+                    <button class="chip chip-100" onclick="placeBet(100)">$100</button>
+                    <button class="chip chip-500" onclick="placeBet(500)">$500</button>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-secondary" onclick="clearBet()">Clear Bet</button>
+                    <button class="btn btn-primary" id="deal-btn" onclick="startRound()" disabled>Deal</button>
+                </div>
+            </div>
+
+            <!-- Playing state -->
+            <div id="action-controls" class="hidden">
+                <div class="btn-row">
+                    <button class="btn btn-primary" id="hit-btn"    onclick="playerHit()">Hit</button>
+                    <button class="btn btn-primary" id="stand-btn"  onclick="playerStand()">Stand</button>
+                    <button class="btn btn-gold"    id="double-btn" onclick="playerDouble()">Double Down</button>
+                    <button class="btn btn-hint"    id="hint-btn"   onclick="showHint()">Hint</button>
+                </div>
+                <div class="hint-text hidden" id="hint-text"></div>
+            </div>
+
+            <!-- Round complete -->
+            <div id="new-round-controls" class="hidden">
+                <button class="btn btn-primary" onclick="newRound()">New Round</button>
+            </div>
+
+            <!-- Game over -->
+            <div id="game-over-controls" class="hidden">
+                <p class="game-over-label">GAME OVER</p>
+                <button class="btn btn-primary" onclick="restartGame()">Restart ($1000)</button>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="blackjack.js"></script>
+</body>
+</html>
