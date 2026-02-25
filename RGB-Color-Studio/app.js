@@ -672,10 +672,10 @@
     const hex = ColorMath.rgbToHex(r, g, b);
     const darkHex = ColorMath.rgbToHex(Math.round(r * 0.45), Math.round(g * 0.45), Math.round(b * 0.45));
 
-    // Cloud fill: each ellipse lightens toward center
+    // Cloud fill via inline style (higher specificity than UA stylesheet)
     const ellipses = $$('#cloudSvg ellipse');
     const fills = [darkHex, hex, darkHex, hex, hex];
-    ellipses.forEach((el, i) => el.setAttribute('fill', fills[i] || hex));
+    ellipses.forEach((el, i) => { el.style.fill = fills[i] || hex; });
 
     // Rain columns
     updateRainCol('rainColR', r, `rgb(${r},20,20)`);
