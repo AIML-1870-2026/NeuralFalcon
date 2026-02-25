@@ -507,9 +507,8 @@ body {
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
   transition: filter var(--transition);
 }
-.cloud-svg ellipse {
-  transition: fill 0.2s ease;
-}
+.cloud-dark  { fill: var(--cloud-dark,  #22587a); transition: fill 0.2s ease; }
+.cloud-light { fill: var(--cloud-light, #4FC3F7); transition: fill 0.2s ease; }
 
 .rain-stage {
   display: flex;

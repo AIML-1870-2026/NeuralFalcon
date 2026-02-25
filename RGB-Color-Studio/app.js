@@ -670,17 +670,19 @@
   function updateCloudPicker() {
     const { r, g, b } = state.color;
     const hex = ColorMath.rgbToHex(r, g, b);
-    const darkHex = ColorMath.rgbToHex(Math.round(r * 0.45), Math.round(g * 0.45), Math.round(b * 0.45));
+    const darkHex = ColorMath.rgbToHex(Math.round(r * 0.4), Math.round(g * 0.4), Math.round(b * 0.4));
 
-    // Cloud fill via inline style (higher specificity than UA stylesheet)
-    const ellipses = $$('#cloudSvg ellipse');
-    const fills = [darkHex, hex, darkHex, hex, hex];
-    ellipses.forEach((el, i) => { el.style.fill = fills[i] || hex; });
+    // Set CSS custom properties on the SVG — most reliable way to drive SVG fill from JS
+    const svg = $('#cloudSvg');
+    if (svg) {
+      svg.style.setProperty('--cloud-light', hex);
+      svg.style.setProperty('--cloud-dark', darkHex);
+    }
 
-    // Rain columns
-    updateRainCol('rainColR', r, `rgb(${r},20,20)`);
-    updateRainCol('rainColG', g, `rgb(20,${g},20)`);
-    updateRainCol('rainColB', b, `rgb(20,20,${b})`);
+    // Rain: vivid pure-channel colors, density proportional to each channel value
+    updateRainCol('rainColR', r, '#ff4444');
+    updateRainCol('rainColG', g, '#44cc66');
+    updateRainCol('rainColB', b, '#4488ff');
 
     // Value labels
     const rv = $('#rainValR'); if (rv) rv.textContent = r;
