@@ -494,18 +494,7 @@ body {
 .audit-badge.audit-fail { background: rgba(238,68,68,0.15); color: var(--fail-red); }
 
 /* --- Chromatic Field Picker --- */
-.chroma-details { }
-
-.chroma-summary {
-  cursor: pointer;
-  user-select: none;
-  border-bottom: none;
-  margin-bottom: 10px;
-  padding-bottom: 0;
-}
-.chroma-summary::-webkit-details-marker,
-.chroma-summary::marker { color: var(--text-muted); }
-.chroma-details[open] .chroma-summary { margin-bottom: 12px; }
+.chroma-section { }
 
 .chroma-container {
   display: flex;
@@ -518,17 +507,16 @@ body {
   position: relative;
   width: 220px;
   height: 220px;
-  border-radius: 50%;
-  background: var(--bg-primary);
+  background: #07090d;
   border: 1px solid var(--border);
+  border-radius: 50%;
   box-shadow:
-    0 0 0 1px rgba(79,195,247,0.06),
+    0 0 0 1px rgba(79,195,247,0.08),
     0 4px 24px rgba(0,0,0,0.6),
-    inset 0 0 12px rgba(0,0,0,0.4);
-  overflow: hidden;
+    inset 0 0 12px rgba(0,0,0,0.5);
 }
 
-/* Phosphor scan-line overlay */
+/* Phosphor scan-line overlay (pointer-events: none so it doesn't block canvas) */
 .chroma-wrap::after {
   content: '';
   position: absolute;
@@ -550,7 +538,7 @@ body {
   width: 220px;
   height: 220px;
   cursor: crosshair;
-  border-radius: inherit;
+  border-radius: 50%;
 }
 
 .chroma-hint {
