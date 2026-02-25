@@ -5,20 +5,43 @@ const SUITS = ['♠', '♥', '♦', '♣'];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const RED_SUITS = new Set(['♥', '♦']);
 
+// ─── DOM Cache ────────────────────────────────────────────────────────────────
+const el = {};
+
+function cacheElements() {
+    el.hudBalance    = document.getElementById('hud-balance');
+    el.hudBet        = document.getElementById('hud-bet');
+    el.betCenter     = document.getElementById('bet-center');
+    el.dealerCards   = document.getElementById('dealer-cards');
+    el.playerCards   = document.getElementById('player-cards');
+    el.dealerScore   = document.getElementById('dealer-score');
+    el.playerScore   = document.getElementById('player-score');
+    el.statusMsg     = document.getElementById('status-message');
+    el.playerZone    = document.getElementById('player-zone');
+    el.bettingCtrl   = document.getElementById('betting-controls');
+    el.actionCtrl    = document.getElementById('action-controls');
+    el.newRoundCtrl  = document.getElementById('new-round-controls');
+    el.gameOverCtrl  = document.getElementById('game-over-controls');
+    el.dealBtn       = document.getElementById('deal-btn');
+    el.hitBtn        = document.getElementById('hit-btn');
+    el.standBtn      = document.getElementById('stand-btn');
+    el.doubleBtn     = document.getElementById('double-btn');
+    el.hintText      = document.getElementById('hint-text');
+}
+
 // ─── State ───────────────────────────────────────────────────────────────────
 let state = {};
 
 function initState(balance = 500) {
     state = {
-        phase: 'BETTING',     // BETTING | PLAYING | DEALER_PLAYING | ROUND_COMPLETE
+        phase: 'BETTING',
         deck: [],
         playerCards: [],
         dealerCards: [],
         balance,
         bet: 0,
-        result: null,         // WIN | LOSE | PUSH | BLACKJACK | BUST
+        result: null,
         holeRevealed: false,
-        justRevealedHole: false,
         isFirstAction: true,
     };
     state.deck = buildShuffledDeck();
@@ -50,7 +73,7 @@ function drawCard() {
 function handValue(cards) {
     let total = 0, aces = 0;
     for (const { rank } of cards) {
-        if (rank === 'A')          { aces++; total += 11; }
+        if (rank === 'A')              { aces++; total += 11; }
         else if ('JQK'.includes(rank)) total += 10;
         else                           total += parseInt(rank);
     }
@@ -64,92 +87,14 @@ function isBlackjack(cards) { return cards.length === 2 && handValue(cards).tota
 
 function dealerShouldHit(cards) {
     const { total, soft } = handValue(cards);
-    return total < 17 || (total === 17 && soft); // hit soft 17
+    return total < 17 || (total === 17 && soft);
 }
 
-// ─── Render ───────────────────────────────────────────────────────────────────
-function render() {
-    // HUD
-    document.getElementById('hud-balance').textContent = `Balance: $${state.balance}`;
-    document.getElementById('hud-bet').textContent     = `Bet: $${state.bet}`;
-
-    // Player cards
-    const playerContainer = document.getElementById('player-cards');
-    playerContainer.innerHTML = '';
-    state.playerCards.forEach((card, i) => {
-        playerContainer.insertAdjacentHTML('beforeend', cardHTML(card, false, i * 0.1));
-    });
-
-    // Dealer cards
-    const dealerContainer = document.getElementById('dealer-cards');
-    dealerContainer.innerHTML = '';
-    state.dealerCards.forEach((card, i) => {
-        const faceDown  = i === 1 && !state.holeRevealed;
-        const revealing = i === 1 && state.justRevealedHole;
-        dealerContainer.insertAdjacentHTML('beforeend', cardHTML(card, faceDown, i * 0.1, revealing));
-    });
-    state.justRevealedHole = false;
-
-    // Score badges
-    const { total: pTotal } = handValue(state.playerCards);
-    document.getElementById('player-score').textContent =
-        state.playerCards.length ? pTotal : '';
-
-    if (state.dealerCards.length) {
-        if (state.holeRevealed) {
-            const { total: dTotal } = handValue(state.dealerCards);
-            document.getElementById('dealer-score').textContent = dTotal;
-        } else {
-            const { total: dVisible } = handValue([state.dealerCards[0]]);
-            document.getElementById('dealer-score').textContent = `${dVisible} + ?`;
-        }
-    } else {
-        document.getElementById('dealer-score').textContent = '';
-    }
-
-    // Status message
-    const msgEl = document.getElementById('status-message');
-    msgEl.className = 'status-message';
-    msgEl.textContent = '';
-    if (state.result) {
-        const labels = { WIN: 'WIN!', LOSE: 'LOSE', PUSH: 'PUSH', BLACKJACK: 'BLACKJACK!', BUST: 'BUST' };
-        msgEl.textContent = labels[state.result];
-        msgEl.classList.add(state.result.toLowerCase());
-    }
-
-    // Zone effects
-    const playerZone = document.getElementById('player-zone');
-    playerZone.classList.remove('win-glow', 'shake');
-    if (state.result === 'WIN' || state.result === 'BLACKJACK') {
-        void playerZone.offsetWidth; // reflow to retrigger
-        playerZone.classList.add('win-glow');
-    } else if (state.result === 'BUST' || state.result === 'LOSE') {
-        void playerZone.offsetWidth;
-        playerZone.classList.add('shake');
-    }
-
-    // Control panels
-    const isBetting  = state.phase === 'BETTING';
-    const isPlaying  = state.phase === 'PLAYING';
-    const isComplete = state.phase === 'ROUND_COMPLETE';
-    const isGameOver = isComplete && state.balance <= 0;
-
-    document.getElementById('betting-controls').classList.toggle('hidden', !isBetting);
-    document.getElementById('action-controls').classList.toggle('hidden', !isPlaying);
-    document.getElementById('new-round-controls').classList.toggle('hidden', !isComplete || isGameOver);
-    document.getElementById('game-over-controls').classList.toggle('hidden', !isGameOver);
-
-    if (isBetting) {
-        document.getElementById('deal-btn').disabled =
-            state.bet === 0 || state.bet > state.balance;
-    }
-
-    if (isPlaying) {
-        document.getElementById('hit-btn').disabled    = false;
-        document.getElementById('stand-btn').disabled  = false;
-        document.getElementById('double-btn').disabled =
-            !state.isFirstAction || state.balance < state.bet;
-    }
+// ─── DOM Helpers ──────────────────────────────────────────────────────────────
+function htmlToElement(html) {
+    const t = document.createElement('template');
+    t.innerHTML = html.trim();
+    return t.content.firstChild;
 }
 
 function cardHTML(card, faceDown, delay = 0, revealing = false) {
@@ -158,54 +103,155 @@ function cardHTML(card, faceDown, delay = 0, revealing = false) {
     }
     const color    = RED_SUITS.has(card.suit) ? 'red' : 'black';
     const revClass = revealing ? ' revealing' : '';
-    return `
-        <div class="card ${color}${revClass}" style="animation-delay:${delay}s">
-            <div class="card-corner top-left">
-                <div class="card-rank">${card.rank}</div>
-                <div class="card-suit-small">${card.suit}</div>
-            </div>
-            <div class="card-center">${card.suit}</div>
-            <div class="card-corner bottom-right">
-                <div class="card-rank">${card.rank}</div>
-                <div class="card-suit-small">${card.suit}</div>
-            </div>
-        </div>`;
+    return `<div class="card ${color}${revClass}" style="animation-delay:${delay}s">` +
+        `<div class="card-corner top-left"><div class="card-rank">${card.rank}</div><div class="card-suit-small">${card.suit}</div></div>` +
+        `<div class="card-center">${card.suit}</div>` +
+        `<div class="card-corner bottom-right"><div class="card-rank">${card.rank}</div><div class="card-suit-small">${card.suit}</div></div>` +
+        `</div>`;
+}
+
+function appendCard(container, card, faceDown, delay = 0) {
+    container.insertAdjacentHTML('beforeend', cardHTML(card, faceDown, delay));
+}
+
+// ─── Targeted Update Functions ────────────────────────────────────────────────
+
+// Called only when bet changes — never touches cards
+function updateBetDisplay() {
+    el.hudBet.textContent    = `Bet: $${state.bet}`;
+    el.dealBtn.disabled      = state.bet === 0 || state.bet > state.balance;
+
+    if (state.bet > 0) {
+        el.betCenter.textContent = `$${state.bet}`;
+        el.betCenter.classList.remove('hidden');
+        el.betCenter.classList.remove('pop');
+        void el.betCenter.offsetWidth;      // restart animation
+        el.betCenter.classList.add('pop');
+    } else {
+        el.betCenter.textContent = '';
+        el.betCenter.classList.add('hidden');
+    }
+}
+
+function updatePlayerScore() {
+    const { total } = handValue(state.playerCards);
+    el.playerScore.textContent = state.playerCards.length ? total : '';
+}
+
+function updateDealerScore() {
+    if (!state.dealerCards.length) { el.dealerScore.textContent = ''; return; }
+    if (state.holeRevealed) {
+        el.dealerScore.textContent = handValue(state.dealerCards).total;
+    } else {
+        el.dealerScore.textContent = `${handValue([state.dealerCards[0]]).total} + ?`;
+    }
+}
+
+function updateHUDBalance() {
+    el.hudBalance.textContent = `Balance: $${state.balance}`;
+}
+
+function updateResult() {
+    el.statusMsg.className   = 'status-message';
+    el.statusMsg.textContent = '';
+    el.playerZone.classList.remove('win-glow', 'shake');
+
+    if (!state.result) return;
+
+    const labels = { WIN: 'WIN!', LOSE: 'LOSE', PUSH: 'PUSH', BLACKJACK: 'BLACKJACK!', BUST: 'BUST' };
+    el.statusMsg.textContent = labels[state.result];
+    el.statusMsg.classList.add(state.result.toLowerCase());
+
+    if (state.result === 'WIN' || state.result === 'BLACKJACK') {
+        el.playerZone.classList.add('win-glow');
+    } else if (state.result === 'BUST' || state.result === 'LOSE') {
+        el.playerZone.classList.add('shake');
+    }
+}
+
+function updatePhaseUI() {
+    const isBetting  = state.phase === 'BETTING';
+    const isPlaying  = state.phase === 'PLAYING';
+    const isComplete = state.phase === 'ROUND_COMPLETE';
+    const isGameOver = isComplete && state.balance <= 0;
+
+    el.bettingCtrl.classList.toggle('hidden', !isBetting);
+    el.actionCtrl.classList.toggle('hidden', !isPlaying);
+    el.newRoundCtrl.classList.toggle('hidden', !isComplete || isGameOver);
+    el.gameOverCtrl.classList.toggle('hidden', !isGameOver);
+
+    if (isPlaying) {
+        el.hitBtn.disabled    = false;
+        el.standBtn.disabled  = false;
+        el.doubleBtn.disabled = !state.isFirstAction || state.balance < state.bet;
+    }
+}
+
+function clearTable() {
+    el.playerCards.innerHTML = '';
+    el.dealerCards.innerHTML = '';
+    el.playerScore.textContent = '';
+    el.dealerScore.textContent = '';
+    el.betCenter.classList.add('hidden');
+    el.statusMsg.className   = 'status-message';
+    el.statusMsg.textContent = '';
+    el.playerZone.classList.remove('win-glow', 'shake');
+}
+
+function revealHoleCard(animated = true) {
+    state.holeRevealed = true;
+    const holeEl = el.dealerCards.children[1];
+    if (!holeEl) return;
+    const newCard = htmlToElement(cardHTML(state.dealerCards[1], false, 0, animated));
+    el.dealerCards.replaceChild(newCard, holeEl);
+    updateDealerScore();
 }
 
 // ─── Betting ──────────────────────────────────────────────────────────────────
 function placeBet(amount) {
     if (state.phase !== 'BETTING') return;
     state.bet = Math.min(state.bet + amount, state.balance);
-    render();
+    updateBetDisplay();         // ← only updates bet UI, never touches cards
 }
 
 function clearBet() {
     if (state.phase !== 'BETTING') return;
     state.bet = 0;
-    render();
+    updateBetDisplay();
 }
 
 // ─── Round Start ──────────────────────────────────────────────────────────────
 function startRound() {
     if (state.bet === 0 || state.bet > state.balance) return;
-    state.balance    -= state.bet;
-    state.playerCards = [drawCard(), drawCard()];
-    state.dealerCards = [drawCard(), drawCard()];
+    state.balance     -= state.bet;
+    state.playerCards  = [drawCard(), drawCard()];
+    state.dealerCards  = [drawCard(), drawCard()];
     state.phase        = 'PLAYING';
     state.holeRevealed = false;
     state.isFirstAction = true;
     state.result       = null;
-    render();
+
+    clearTable();
+    updateHUDBalance();
+
+    // Deal 4 cards with staggered animation
+    appendCard(el.playerCards, state.playerCards[0], false, 0);
+    appendCard(el.dealerCards, state.dealerCards[0], false, 0.12);
+    appendCard(el.playerCards, state.playerCards[1], false, 0.24);
+    appendCard(el.dealerCards, state.dealerCards[1], true,  0.36); // hole card
+
+    updatePlayerScore();
+    updateDealerScore();
+    updatePhaseUI();
 
     // Natural blackjack check
     const playerBJ = isBlackjack(state.playerCards);
     const dealerBJ = isBlackjack(state.dealerCards);
     if (playerBJ || dealerBJ) {
-        state.holeRevealed      = true;
-        state.justRevealedHole  = true;
-        if (playerBJ && dealerBJ)      resolveRound('PUSH');
-        else if (playerBJ)             resolveRound('BLACKJACK');
-        else                           resolveRound('LOSE');
+        revealHoleCard(false);
+        if (playerBJ && dealerBJ) resolveRound('PUSH');
+        else if (playerBJ)        resolveRound('BLACKJACK');
+        else                      resolveRound('LOSE');
     }
 }
 
@@ -214,20 +260,22 @@ function playerHit() {
     if (state.phase !== 'PLAYING') return;
     hideHint();
     state.isFirstAction = false;
-    state.playerCards.push(drawCard());
-    render();
-    const { total } = handValue(state.playerCards);
-    if (isBust(state.playerCards)) resolveRound('BUST');
-    else if (total === 21)         playerStand();
+    const card = drawCard();
+    state.playerCards.push(card);
+    appendCard(el.playerCards, card, false, 0);
+    updatePlayerScore();
+    el.doubleBtn.disabled = true;
+
+    if (isBust(state.playerCards))                   resolveRound('BUST');
+    else if (handValue(state.playerCards).total === 21) playerStand();
 }
 
 function playerStand() {
     if (state.phase !== 'PLAYING') return;
     hideHint();
-    state.phase            = 'DEALER_PLAYING';
-    state.holeRevealed     = true;
-    state.justRevealedHole = true;
-    render();
+    state.phase = 'DEALER_PLAYING';
+    revealHoleCard(true);
+    updatePhaseUI();
     setTimeout(dealerPlay, 550);
 }
 
@@ -235,11 +283,17 @@ function playerDouble() {
     if (state.phase !== 'PLAYING' || !state.isFirstAction) return;
     if (state.balance < state.bet) return;
     hideHint();
-    state.balance       -= state.bet;
-    state.bet           *= 2;
-    state.isFirstAction  = false;
-    state.playerCards.push(drawCard());
-    render();
+    state.balance      -= state.bet;
+    state.bet          *= 2;
+    state.isFirstAction = false;
+    el.hudBet.textContent = `Bet: $${state.bet}`;
+    updateHUDBalance();
+
+    const card = drawCard();
+    state.playerCards.push(card);
+    appendCard(el.playerCards, card, false, 0);
+    updatePlayerScore();
+
     if (isBust(state.playerCards)) resolveRound('BUST');
     else                           playerStand();
 }
@@ -247,16 +301,18 @@ function playerDouble() {
 // ─── Dealer Play ──────────────────────────────────────────────────────────────
 function dealerPlay() {
     if (dealerShouldHit(state.dealerCards)) {
-        state.dealerCards.push(drawCard());
-        render();
-        setTimeout(dealerPlay, 620);
+        const card = drawCard();
+        state.dealerCards.push(card);
+        appendCard(el.dealerCards, card, false, 0);
+        updateDealerScore();
+        setTimeout(dealerPlay, 600);
     } else {
         const pv = handValue(state.playerCards).total;
         const dv = handValue(state.dealerCards).total;
-        if (isBust(state.dealerCards))  resolveRound('WIN');
-        else if (pv > dv)               resolveRound('WIN');
-        else if (pv < dv)               resolveRound('LOSE');
-        else                            resolveRound('PUSH');
+        if (isBust(state.dealerCards)) resolveRound('WIN');
+        else if (pv > dv)              resolveRound('WIN');
+        else if (pv < dv)              resolveRound('LOSE');
+        else                           resolveRound('PUSH');
     }
 }
 
@@ -265,31 +321,37 @@ function resolveRound(result) {
     state.result = result;
     state.phase  = 'ROUND_COMPLETE';
     switch (result) {
-        case 'WIN':       state.balance += state.bet * 2;                   break;
-        case 'BLACKJACK': state.balance += Math.floor(state.bet * 2.5);     break;
-        case 'PUSH':      state.balance += state.bet;                       break;
-        // LOSE / BUST: bet already deducted at startRound
+        case 'WIN':       state.balance += state.bet * 2;               break;
+        case 'BLACKJACK': state.balance += Math.floor(state.bet * 2.5); break;
+        case 'PUSH':      state.balance += state.bet;                   break;
     }
-    render();
+    updateHUDBalance();
+    updateResult();
+    updatePhaseUI();
     if (result === 'WIN' || result === 'BLACKJACK') spawnParticles();
 }
 
 // ─── New Round ────────────────────────────────────────────────────────────────
 function newRound() {
-    state.phase            = 'BETTING';
-    state.playerCards      = [];
-    state.dealerCards      = [];
-    state.bet              = 0;
-    state.result           = null;
-    state.holeRevealed     = false;
-    state.justRevealedHole = false;
-    state.isFirstAction    = true;
-    render();
+    state.phase         = 'BETTING';
+    state.playerCards   = [];
+    state.dealerCards   = [];
+    state.bet           = 0;
+    state.result        = null;
+    state.holeRevealed  = false;
+    state.isFirstAction = true;
+
+    clearTable();
+    updateBetDisplay();
+    updatePhaseUI();
 }
 
 function restartGame() {
     initState(1000);
-    render();
+    clearTable();
+    updateHUDBalance();
+    updateBetDisplay();
+    updatePhaseUI();
 }
 
 // ─── Hint ─────────────────────────────────────────────────────────────────────
@@ -297,19 +359,16 @@ let hintTimeout = null;
 
 function showHint() {
     const { total, soft } = handValue(state.playerCards);
-    const dealerUpcard    = state.dealerCards[0];
-    const hint = basicStrategy(total, soft, state.playerCards.length, dealerUpcard);
-    const hintEl = document.getElementById('hint-text');
-    hintEl.textContent = `Basic strategy: ${hint}`;
-    hintEl.classList.remove('hidden');
+    const hint = basicStrategy(total, soft, state.playerCards.length, state.dealerCards[0]);
+    el.hintText.textContent = `Basic strategy: ${hint}`;
+    el.hintText.classList.remove('hidden');
     clearTimeout(hintTimeout);
     hintTimeout = setTimeout(hideHint, 3000);
 }
 
 function hideHint() {
     clearTimeout(hintTimeout);
-    const hintEl = document.getElementById('hint-text');
-    if (hintEl) hintEl.classList.add('hidden');
+    el.hintText.classList.add('hidden');
 }
 
 function basicStrategy(total, soft, numCards, dealerCard) {
@@ -330,8 +389,6 @@ function basicStrategy(total, soft, numCards, dealerCard) {
         if (total === 13 || total === 14) return (d >= 5 && d <= 6 && canDouble) ? 'Double Down' : 'Hit';
         return 'Hit';
     }
-
-    // Hard totals
     if (total >= 17) return 'Stand';
     if (total >= 13) return d <= 6 ? 'Stand' : 'Hit';
     if (total === 12) return (d >= 4 && d <= 6) ? 'Stand' : 'Hit';
@@ -343,23 +400,32 @@ function basicStrategy(total, soft, numCards, dealerCard) {
 
 // ─── Particles ────────────────────────────────────────────────────────────────
 function spawnParticles() {
-    const zone  = document.getElementById('player-zone');
-    const count = state.result === 'BLACKJACK' ? 42 : 26;
+    const zone  = el.playerZone;
+    const count = state.result === 'BLACKJACK' ? 40 : 24;
+    const frag  = document.createDocumentFragment();
     for (let i = 0; i < count; i++) {
         const p = document.createElement('div');
         p.className = 'particle';
-        p.style.left             = (8 + Math.random() * 84) + '%';
-        p.style.top              = (10 + Math.random() * 78) + '%';
-        p.style.animationDelay   = (Math.random() * 0.5) + 's';
-        p.style.animationDuration = (0.8 + Math.random() * 0.7) + 's';
-        p.style.background       = Math.random() > 0.45 ? '#ffd700' : '#e8c96e';
-        p.style.width            = (5 + Math.random() * 5) + 'px';
-        p.style.height           = p.style.width;
-        zone.appendChild(p);
-        setTimeout(() => p.remove(), 1600);
+        p.style.cssText = `left:${8 + Math.random() * 84}%;top:${10 + Math.random() * 78}%;` +
+            `animation-delay:${(Math.random() * 0.45).toFixed(2)}s;` +
+            `animation-duration:${(0.8 + Math.random() * 0.65).toFixed(2)}s;` +
+            `background:${Math.random() > 0.45 ? '#ffd700' : '#e8c96e'};` +
+            `width:${(5 + Math.random() * 5).toFixed(1)}px;` +
+            `height:${(5 + Math.random() * 5).toFixed(1)}px;`;
+        frag.appendChild(p);
+        setTimeout(() => p.remove(), 1500);
     }
+    zone.appendChild(frag);
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
+cacheElements();
 initState();
-render();
+// Set initial UI state without touching cards
+el.hudBalance.textContent = `Balance: $${state.balance}`;
+el.hudBet.textContent     = `Bet: $${state.bet}`;
+el.bettingCtrl.classList.remove('hidden');
+el.actionCtrl.classList.add('hidden');
+el.newRoundCtrl.classList.add('hidden');
+el.gameOverCtrl.classList.add('hidden');
+el.dealBtn.disabled = true;
