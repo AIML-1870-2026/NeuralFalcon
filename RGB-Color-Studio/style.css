@@ -493,59 +493,83 @@ body {
 .audit-badge.audit-warn { background: rgba(238,187,51,0.15); color: var(--warn-yellow); }
 .audit-badge.audit-fail { background: rgba(238,68,68,0.15); color: var(--fail-red); }
 
-/* --- Chromatic Field Picker --- */
-.chroma-section { }
-
-.chroma-container {
+/* --- Cloud Rain Picker --- */
+.cloud-picker {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  user-select: none;
 }
 
-.chroma-wrap {
-  position: relative;
-  width: 220px;
-  height: 220px;
-  background: #07090d;
+.cloud-svg {
+  width: 100%;
+  height: 68px;
+  display: block;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5));
+  transition: filter var(--transition);
+}
+.cloud-svg ellipse {
+  transition: fill 0.2s ease;
+}
+
+.rain-stage {
+  display: flex;
+  height: 140px;
   border: 1px solid var(--border);
-  border-radius: 50%;
-  box-shadow:
-    0 0 0 1px rgba(79,195,247,0.08),
-    0 4px 24px rgba(0,0,0,0.6),
-    inset 0 0 12px rgba(0,0,0,0.5);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
 }
 
-/* Phosphor scan-line overlay (pointer-events: none so it doesn't block canvas) */
-.chroma-wrap::after {
-  content: '';
+.rain-zone {
+  flex: 1;
+  position: relative;
+  cursor: ns-resize;
+  border-right: 1px solid var(--border);
+  transition: background var(--transition);
+}
+.rain-zone:last-child { border-right: none; }
+.rain-zone:hover { background: rgba(255,255,255,0.025); }
+.rain-zone:active { background: rgba(255,255,255,0.04); }
+
+.rain-col {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0, 255, 120, 0.018) 3px,
-    rgba(0, 255, 120, 0.018) 4px
-  );
-  pointer-events: none;
-  z-index: 2;
+  bottom: 22px;
+  overflow: hidden;
 }
 
-.chroma-wrap canvas {
-  display: block;
-  width: 220px;
-  height: 220px;
-  cursor: crosshair;
-  border-radius: 50%;
+.rain-drop {
+  position: absolute;
+  width: 2px;
+  border-radius: 2px;
+  animation: rain-fall linear infinite;
+}
+@keyframes rain-fall {
+  0%   { transform: translateY(-16px); opacity: 0; }
+  8%   { opacity: 0.9; }
+  88%  { opacity: 0.9; }
+  100% { transform: translateY(150px); opacity: 0; }
 }
 
-.chroma-hint {
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: 0.4px;
+.rain-label {
+  position: absolute;
+  bottom: 3px;
+  left: 0; right: 0;
   text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+.rain-puddle {
+  height: 8px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  border: 1px solid var(--border);
+  border-top: none;
+  opacity: 0.6;
+  transition: background-color 0.3s ease;
 }
 
 /* --- Explorer details (collapsible in side panel) --- */

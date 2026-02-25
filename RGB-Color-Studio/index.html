@@ -39,18 +39,30 @@
         <span class="color-name" id="colorName"></span>
       </div>
 
-      <!-- Chromatic Field Picker -->
-      <div class="chroma-section">
-        <h3 class="section-title">Chromatic Field</h3>
-        <div class="chroma-container">
-          <div class="chroma-wrap">
-            <canvas id="chromaticCanvas" width="220" height="220"
-              tabindex="0"
-              aria-label="2D HSV color picker. Drag the outer ring to change hue. Drag the inner square to change saturation and brightness.">
-            </canvas>
+      <!-- Cloud Rain Picker -->
+      <div class="cloud-picker" id="cloudPicker" aria-label="RGB rain picker — drag up/down in each column to adjust R, G, B">
+        <svg class="cloud-svg" id="cloudSvg" viewBox="0 0 220 72" aria-hidden="true">
+          <ellipse cx="58"  cy="52" rx="48" ry="24"/>
+          <ellipse cx="118" cy="46" rx="56" ry="30"/>
+          <ellipse cx="172" cy="52" rx="42" ry="23"/>
+          <ellipse cx="93"  cy="32" rx="38" ry="26"/>
+          <ellipse cx="148" cy="27" rx="35" ry="24"/>
+        </svg>
+        <div class="rain-stage">
+          <div class="rain-zone" id="rainZoneR" data-ch="r" title="Red — drag up/down">
+            <div class="rain-col" id="rainColR"></div>
+            <div class="rain-label" style="color:var(--red)">R <span id="rainValR">79</span></div>
           </div>
-          <div class="chroma-hint">Ring → hue &nbsp;·&nbsp; Field → sat / bright</div>
+          <div class="rain-zone" id="rainZoneG" data-ch="g" title="Green — drag up/down">
+            <div class="rain-col" id="rainColG"></div>
+            <div class="rain-label" style="color:var(--green)">G <span id="rainValG">195</span></div>
+          </div>
+          <div class="rain-zone" id="rainZoneB" data-ch="b" title="Blue — drag up/down">
+            <div class="rain-col" id="rainColB"></div>
+            <div class="rain-label" style="color:var(--blue)">B <span id="rainValB">247</span></div>
+          </div>
         </div>
+        <div class="rain-puddle" id="rainPuddle"></div>
       </div>
 
       <!-- RGB Sliders -->
