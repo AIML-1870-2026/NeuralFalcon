@@ -39,6 +39,20 @@
         <span class="color-name" id="colorName"></span>
       </div>
 
+      <!-- Chromatic Field Picker -->
+      <details class="chroma-details" open>
+        <summary class="section-title chroma-summary">Chromatic Field</summary>
+        <div class="chroma-container">
+          <div class="chroma-wrap">
+            <canvas id="chromaticCanvas" width="220" height="220"
+              tabindex="0"
+              aria-label="2D HSV color picker. Drag the outer ring to change hue. Drag the inner square to change saturation and brightness.">
+            </canvas>
+          </div>
+          <div class="chroma-hint">Ring → hue &nbsp;·&nbsp; Field → sat / bright</div>
+        </div>
+      </details>
+
       <!-- RGB Sliders -->
       <div class="slider-group" role="group" aria-label="RGB channel sliders">
         <div class="slider-row">

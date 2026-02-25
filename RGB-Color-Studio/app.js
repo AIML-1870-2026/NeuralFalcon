@@ -120,6 +120,7 @@
     updateMixStrips();
     updateCube();
     updateContrastChecker();
+    drawChromaticField();
   }
 
   // --- Mix playground ---
@@ -642,6 +643,203 @@
     });
   }
 
+  // --- Chromatic Field: HSV conversion helpers ---
+  function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+    let h = 0;
+    const s = max === 0 ? 0 : d / max;
+    const v = max;
+    if (d !== 0) {
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    return { h: h * 360, s, v };
+  }
+
+  function hsvToRgb(h, s, v) {
+    h /= 360;
+    const i = Math.floor(h * 6);
+    const f = h * 6 - i;
+    const p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+    let r, g, b;
+    switch (i % 6) {
+      case 0: r = v; g = t; b = p; break;
+      case 1: r = q; g = v; b = p; break;
+      case 2: r = p; g = v; b = t; break;
+      case 3: r = p; g = q; b = v; break;
+      case 4: r = t; g = p; b = v; break;
+      case 5: r = v; g = p; b = q; break;
+    }
+    return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+  }
+
+  // --- Chromatic Field: canvas drawing ---
+  function drawChromaticField() {
+    const canvas = $('#chromaticCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const center = W / 2;
+    const outerR = center - 3;
+    const ringW = 22;
+    const innerR = outerR - ringW;
+    const pad = 7;
+    const sqSize = (innerR - pad) * 2;
+    const sx = center - sqSize / 2;
+    const sy = center - sqSize / 2;
+
+    ctx.clearRect(0, 0, W, W);
+
+    // Hue ring — 360 arc segments
+    for (let deg = 0; deg < 360; deg++) {
+      const a1 = ((deg - 0.5) / 360) * Math.PI * 2 - Math.PI / 2;
+      const a2 = ((deg + 0.5) / 360) * Math.PI * 2 - Math.PI / 2;
+      ctx.beginPath();
+      ctx.arc(center, center, (outerR + innerR) / 2, a1, a2);
+      ctx.lineWidth = ringW + 1;
+      ctx.strokeStyle = `hsl(${deg},100%,50%)`;
+      ctx.stroke();
+    }
+
+    // Dark background behind inner square
+    ctx.beginPath();
+    ctx.arc(center, center, innerR - 1, 0, Math.PI * 2);
+    ctx.fillStyle = '#07090d';
+    ctx.fill();
+
+    // Clip canvas draws to inner circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(center, center, innerR - 1, 0, Math.PI * 2);
+    ctx.clip();
+
+    const { h, s, v } = rgbToHsv(state.color.r, state.color.g, state.color.b);
+    const hueStr = `hsl(${h},100%,50%)`;
+
+    // Saturation: white → hue (left → right)
+    const gradS = ctx.createLinearGradient(sx, 0, sx + sqSize, 0);
+    gradS.addColorStop(0, '#ffffff');
+    gradS.addColorStop(1, hueStr);
+    ctx.fillStyle = gradS;
+    ctx.fillRect(sx, sy, sqSize, sqSize);
+
+    // Value: transparent → black (top → bottom)
+    const gradV = ctx.createLinearGradient(0, sy, 0, sy + sqSize);
+    gradV.addColorStop(0, 'rgba(0,0,0,0)');
+    gradV.addColorStop(1, 'rgba(0,0,0,1)');
+    ctx.fillStyle = gradV;
+    ctx.fillRect(sx, sy, sqSize, sqSize);
+
+    ctx.restore();
+
+    // Hue cursor on ring
+    const hRad = (h / 360) * Math.PI * 2 - Math.PI / 2;
+    const ringMidR = (outerR + innerR) / 2;
+    const hx = center + ringMidR * Math.cos(hRad);
+    const hy = center + ringMidR * Math.sin(hRad);
+    ctx.beginPath();
+    ctx.arc(hx, hy, ringW / 2 - 2, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(hx, hy, ringW / 2 - 2, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ffffff';
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // SV cursor dot
+    const dotX = sx + s * sqSize;
+    const dotY = sy + (1 - v) * sqSize;
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = hueStr;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // --- Chromatic Field: drag interaction ---
+  function initChromaticField() {
+    const canvas = $('#chromaticCanvas');
+    if (!canvas) return;
+
+    const W = canvas.width;
+    const center = W / 2;
+    const outerR = center - 3;
+    const ringW = 22;
+    const innerR = outerR - ringW;
+    const pad = 7;
+    const sqSize = (innerR - pad) * 2;
+    const sx = center - sqSize / 2;
+    const sy = center - sqSize / 2;
+
+    let drag = null;
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const src = e.touches ? e.touches[0] : e;
+      return {
+        x: (src.clientX - rect.left) * (W / rect.width),
+        y: (src.clientY - rect.top) * (W / rect.height)
+      };
+    }
+
+    function apply(pos) {
+      const { x, y } = pos;
+      const { h, s, v } = rgbToHsv(state.color.r, state.color.g, state.color.b);
+      if (drag === 'ring') {
+        const dx = x - center, dy = y - center;
+        let angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+        if (angle < 0) angle += 360;
+        if (angle >= 360) angle -= 360;
+        const rgb = hsvToRgb(angle, s, v);
+        setColor(rgb.r, rgb.g, rgb.b);
+      } else if (drag === 'field') {
+        const ns = Math.max(0, Math.min(1, (x - sx) / sqSize));
+        const nv = Math.max(0, Math.min(1, 1 - (y - sy) / sqSize));
+        const rgb = hsvToRgb(h, ns, nv);
+        setColor(rgb.r, rgb.g, rgb.b);
+      }
+    }
+
+    function onDown(e) {
+      const pos = getPos(e);
+      const dx = pos.x - center, dy = pos.y - center;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist >= innerR && dist <= outerR + 2) drag = 'ring';
+      else if (pos.x >= sx && pos.x <= sx + sqSize && pos.y >= sy && pos.y <= sy + sqSize) drag = 'field';
+      if (drag) { apply(pos); e.preventDefault(); }
+    }
+
+    canvas.addEventListener('mousedown', onDown);
+    canvas.addEventListener('touchstart', onDown, { passive: false });
+    window.addEventListener('mousemove', (e) => { if (drag) apply(getPos(e)); });
+    window.addEventListener('touchmove', (e) => {
+      if (!drag) return;
+      apply(getPos(e));
+      e.preventDefault();
+    }, { passive: false });
+    window.addEventListener('mouseup', () => { drag = null; });
+    window.addEventListener('touchend', () => { drag = null; });
+
+    drawChromaticField();
+  }
+
   // --- Tab navigation ---
   function initTabs(tabSelector) {
     const tabs = $$(tabSelector);
@@ -838,6 +1036,9 @@
 
     // CVD widget
     initCVDWidget();
+
+    // Chromatic Field picker
+    initChromaticField();
 
     // Cube drag
     initCubeDrag();
