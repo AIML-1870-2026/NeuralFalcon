@@ -40,8 +40,9 @@ When I say "Start [AssignmentName]":
 
 1. Create a folder called `[AssignmentName]` directly inside `NeuralFalcon/` (NOT in the root)
 2. Create a starter `index.html` inside it
-3. Update `NeuralFalcon/index.html` with a link to the new project
-4. Tell me the folder is ready
+3. Create a `CLAUDE.md` inside the new folder containing exactly: `@../CLAUDE.md` — this ensures the root instructions apply when the subfolder is opened as a workspace
+4. Update `NeuralFalcon/index.html` with a link to the new project
+5. Tell me the folder is ready
 
 **All new projects must be created inside `NeuralFalcon/` so they are part of the GitHub Pages portfolio.**
 

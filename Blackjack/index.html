@@ -15,6 +15,19 @@
     <div class="hud">
         <span class="hud-item" id="hud-balance">Balance: $500</span>
         <span class="hud-item" id="hud-bet">Bet: $0</span>
+        <span class="hud-item hud-shoe" id="hud-shoe">
+            <span class="shoe-label">Shoe</span>
+            <span class="shoe-bar-wrap"><span class="shoe-bar" id="shoe-bar"></span></span>
+            <span id="shoe-count">312</span>
+        </span>
+        <button class="hud-count-toggle" id="count-toggle" onclick="toggleCount()">Count</button>
+    </div>
+    <!-- Count Panel -->
+    <div class="count-panel hidden" id="count-panel">
+        <span id="count-running">Running: 0</span>
+        <span class="count-sep">|</span>
+        <span id="count-true">True: 0.0</span>
+        <span class="count-note">(educational only)</span>
     </div>
 
     <!-- Table -->
@@ -27,6 +40,10 @@
                 <span class="score-badge" id="dealer-score"></span>
             </div>
             <div class="card-row" id="dealer-cards"></div>
+            <div class="tell-hint hidden" id="tell-hint">
+                <span class="tell-icon" title="Dealer tells are just for fun — don't rely on them!">ℹ</span>
+                <span class="tell-text" id="tell-text"></span>
+            </div>
         </section>
 
         <!-- Divider -->
@@ -51,7 +68,19 @@
                 <span class="score-badge" id="player-score"></span>
             </div>
             <div class="bet-center hidden" id="bet-center"></div>
+            <!-- Normal hand -->
             <div class="card-row" id="player-cards"></div>
+            <!-- Split hands (hidden until split) -->
+            <div class="split-hands hidden" id="split-hands">
+                <div class="split-hand" id="split-hand-0">
+                    <div class="split-hand-label">Hand 1 <span class="score-badge" id="split-score-0"></span></div>
+                    <div class="card-row" id="split-cards-0"></div>
+                </div>
+                <div class="split-hand" id="split-hand-1">
+                    <div class="split-hand-label">Hand 2 <span class="score-badge" id="split-score-1"></span></div>
+                    <div class="card-row" id="split-cards-1"></div>
+                </div>
+            </div>
         </section>
 
         <!-- Controls -->
@@ -72,12 +101,22 @@
                 </div>
             </div>
 
+            <!-- Insurance prompt -->
+            <div id="insurance-controls" class="hidden">
+                <p class="insurance-label">Dealer shows Ace — Insurance?</p>
+                <div class="btn-row">
+                    <button class="btn btn-gold" onclick="takeInsurance()">Yes, half bet ($<span id="ins-amount">0</span>)</button>
+                    <button class="btn btn-secondary" onclick="declineInsurance()">No thanks</button>
+                </div>
+            </div>
+
             <!-- Playing state -->
             <div id="action-controls" class="hidden">
                 <div class="btn-row">
                     <button class="btn btn-primary" id="hit-btn"    onclick="playerHit()">Hit</button>
                     <button class="btn btn-primary" id="stand-btn"  onclick="playerStand()">Stand</button>
                     <button class="btn btn-gold"    id="double-btn" onclick="playerDouble()">Double Down</button>
+                    <button class="btn btn-gold"    id="split-btn"  onclick="playerSplit()">Split</button>
                     <button class="btn btn-hint"    id="hint-btn"   onclick="showHint()">Hint</button>
                 </div>
                 <div class="hint-text hidden" id="hint-text"></div>
