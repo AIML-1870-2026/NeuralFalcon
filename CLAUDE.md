@@ -24,14 +24,17 @@ When I say "Deploy":
    - Confirm we're inside the Gamertag folder (or a subfolder of it)
    - Check that .git exists at the root level
 
-2. **Stage and Commit**
+2. **Pre-Deploy Check**
+   - **Always tell the user to check "web doctor" before pushing.** Wait for confirmation before proceeding.
+
+3. **Stage and Commit**
    - `git add .`
    - `git commit -m "Update: [describe what changed]"`
 
-3. **Push**
+4. **Push**
    - `git push origin main`
 
-4. **Report Success**
+5. **Report Success**
    - Confirm the push succeeded
    - Remind me of my live URL: https://aiml-1870-2026.github.io/[Gamertag]/
 
@@ -46,7 +49,7 @@ When I say "Start [AssignmentName]":
 
 **All new projects must be created inside `NeuralFalcon/` so they are part of the GitHub Pages portfolio.**
 
-**Always deploy automatically after finishing a project or adding it to NeuralFalcon. Do not ask — just deploy.**
+**Always deploy automatically after finishing a project or adding it to NeuralFalcon. Do not ask — just deploy. But always tell the user to check "web doctor" before pushing, and wait for confirmation.**
 
 ### Show My URLs
 When I say "Show my URLs" or "Where's my stuff?":
