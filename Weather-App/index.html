@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-default">
+
+  <div id="app">
+
+    <!-- Search -->
+    <header>
+      <h1 class="app-title">Weather</h1>
+      <div class="search-row">
+        <label for="city-input" class="sr-only">City name</label>
+        <input
+          id="city-input"
+          type="text"
+          placeholder="Search city…"
+          autocomplete="off"
+          aria-label="City name"
+        >
+        <button id="search-btn" aria-label="Search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </button>
+      </div>
+      <p id="error-msg" class="error-msg" role="alert" aria-live="polite"></p>
+    </header>
+
+    <!-- Loading -->
+    <div id="loading" class="loading hidden" aria-label="Loading weather data">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Main content -->
+    <main id="weather-content" class="hidden">
+
+      <!-- Current weather card -->
+      <section class="current-card" aria-label="Current weather">
+        <div class="card-top">
+          <div class="location-block">
+            <h2 id="city-name"></h2>
+            <p id="date-time"></p>
+          </div>
+          <div class="unit-toggle">
+            <button id="unit-btn" aria-label="Toggle temperature unit">°F</button>
+          </div>
+        </div>
+
+        <div class="card-main">
+          <div class="temp-block">
+            <img id="weather-icon" src="" alt="" width="80" height="80">
+            <span id="temperature" class="temp-display"></span>
+          </div>
+          <div class="desc-block">
+            <p id="weather-desc"></p>
+            <p id="feels-like"></p>
+            <p id="hi-lo"></p>
+          </div>
+        </div>
+
+        <div class="card-stats">
+          <div class="stat">
+            <span class="stat-label">Humidity</span>
+            <span id="humidity" class="stat-val"></span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Wind</span>
+            <span id="wind" class="stat-val"></span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Visibility</span>
+            <span id="visibility" class="stat-val"></span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Sunrise</span>
+            <span id="sunrise" class="stat-val"></span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Sunset</span>
+            <span id="sunset" class="stat-val"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5-day forecast -->
+      <section class="forecast-strip" aria-label="5-day forecast">
+        <h3 class="forecast-title">5-Day Forecast</h3>
+        <div id="forecast-days" class="forecast-days"></div>
+      </section>
+
+    </main>
+
+    <footer>
+      Data by <a href="https://openweathermap.org/" target="_blank" rel="noopener">OpenWeatherMap</a>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
