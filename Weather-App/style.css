@@ -516,7 +516,7 @@ header { display: flex; flex-direction: column; gap: 16px; }
 
 /* ── Section divider ────────────────────────────────────────── */
 .section-divider {
-  height: 10px;
+  height: 25px;
   background: var(--divider);
   border-radius: 1px;
   margin: 8px 4px 0;
