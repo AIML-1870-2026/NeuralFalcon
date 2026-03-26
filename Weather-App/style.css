@@ -514,6 +514,14 @@ header { display: flex; flex-direction: column; gap: 16px; }
   background: var(--divider);
 }
 
+/* ── Section divider ────────────────────────────────────────── */
+.section-divider {
+  height: 1px;
+  background: var(--divider);
+  border-radius: 1px;
+  margin: 0 4px;
+}
+
 /* ── Forecast ───────────────────────────────────────────────── */
 .forecast-strip {
   display: flex;
