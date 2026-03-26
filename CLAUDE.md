@@ -25,7 +25,7 @@ When I say "Deploy":
    - Check that .git exists at the root level
 
 2. **Pre-Deploy Check**
-   - **Always tell the user to check "web doctor" before pushing.** Wait for confirmation before proceeding.
+   - Remind the user to check "web doctor", then push immediately without waiting for confirmation.
 
 3. **Stage and Commit**
    - `git add .`
@@ -49,7 +49,7 @@ When I say "Start [AssignmentName]":
 
 **All new projects must be created inside `NeuralFalcon/` so they are part of the GitHub Pages portfolio.**
 
-**Always deploy automatically after finishing a project or adding it to NeuralFalcon. Do not ask — just deploy. But always tell the user to check "web doctor" before pushing, and wait for confirmation.**
+**Always deploy automatically after finishing a project or adding it to NeuralFalcon. Do not ask — just deploy. Remind the user to check "web doctor" but push immediately without waiting.**
 
 ### Show My URLs
 When I say "Show my URLs" or "Where's my stuff?":
