@@ -519,7 +519,7 @@ header { display: flex; flex-direction: column; gap: 16px; }
   height: 1px;
   background: var(--divider);
   border-radius: 1px;
-  margin: 0 4px;
+  margin: 8px 4px 0;
 }
 
 /* ── Forecast ───────────────────────────────────────────────── */
