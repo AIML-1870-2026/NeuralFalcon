@@ -287,7 +287,7 @@ function applyTheme(c) {
 // ── Unit toggle ────────────────────────────────────────────────
 function toggleUnit() {
   unit = unit === 'imperial' ? 'metric' : 'imperial';
-  if (lastData) renderAll(lastData.current, lastData.forecast);
+  if (lastData) fetchWeather(lastData.current.name);
 }
 
 // ── Helpers ────────────────────────────────────────────────────
