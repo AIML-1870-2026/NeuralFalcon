@@ -598,11 +598,27 @@ document.addEventListener('DOMContentLoaded', () => {
   // API key
   const keyInput = document.getElementById('api-key-input');
   if (keyInput) {
+    // Clear any stale DEMO_KEY from localStorage
+    if (localStorage.getItem('nasa_api_key') === 'DEMO_KEY') localStorage.removeItem('nasa_api_key');
+    state.apiKey = localStorage.getItem('nasa_api_key') || 'DEMO_KEY';
     keyInput.value = state.apiKey === 'DEMO_KEY' ? '' : state.apiKey;
-    keyInput.addEventListener('change', () => {
-      state.apiKey = keyInput.value.trim() || 'DEMO_KEY';
-      localStorage.setItem('nasa_api_key', state.apiKey);
-    });
+    keyInput.placeholder = state.apiKey === 'DEMO_KEY' ? 'DEMO_KEY (rate limited)' : '✓ Key saved';
+
+    const saveKey = () => {
+      const val = keyInput.value.trim();
+      state.apiKey = val || 'DEMO_KEY';
+      if (val) {
+        localStorage.setItem('nasa_api_key', val);
+        keyInput.style.borderColor = 'var(--success)';
+        keyInput.placeholder = '✓ Key saved';
+      } else {
+        localStorage.removeItem('nasa_api_key');
+        keyInput.style.borderColor = '';
+        keyInput.placeholder = 'DEMO_KEY (rate limited)';
+      }
+    };
+    keyInput.addEventListener('change', saveKey);
+    keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') { saveKey(); fetchNeows(); } });
   }
 
   // NeoWs
