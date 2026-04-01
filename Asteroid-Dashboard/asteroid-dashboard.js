@@ -37,15 +37,26 @@ function initTabs() {
 
 // ── TAB 1: NeoWs ───────────────────────────────────────────────────────────
 async function fetchNeows() {
-  const start = document.getElementById('neo-start').value;
-  const end   = document.getElementById('neo-end').value;
+  const start   = document.getElementById('neo-start').value;
+  const end     = document.getElementById('neo-end').value;
+  const cacheKey = `neows_${start}_${end}`;
+  const cached   = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+  const ONE_HOUR = 60 * 60 * 1000;
+
   showLoading('neo-stats', 'Fetching');
   showLoading('neo-table-wrap', 'Fetching asteroid data');
+
   try {
-    const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${start}&end_date=${end}&api_key=${state.apiKey}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
+    let json;
+    if (cached && (Date.now() - cached.ts < ONE_HOUR)) {
+      json = cached.data;
+    } else {
+      const url = `https://api.nasa.gov/neo/rest/v1/feed?start_date=${start}&end_date=${end}&api_key=${state.apiKey}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      json = await res.json();
+      localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data: json }));
+    }
     const neos = [];
     for (const date of Object.keys(json.near_earth_objects)) {
       for (const neo of json.near_earth_objects[date]) {
