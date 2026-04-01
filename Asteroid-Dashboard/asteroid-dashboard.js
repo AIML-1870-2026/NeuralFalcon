@@ -192,36 +192,42 @@ function prefillSimulator(id) {
 }
 
 // ── TAB 2: SENTRY ──────────────────────────────────────────────────────────
-const SENTRY_URL = 'https://ssd-api.jpl.nasa.gov/sentry.api';
-const PROXY      = 'https://corsproxy.io/?url=';
+const SENTRY_URL  = 'https://ssd-api.jpl.nasa.gov/sentry.api';
+const ALLORIGINS  = 'https://api.allorigins.win/get?url=';
 
-async function fetchWithTimeout(url, ms = 8000) {
+async function timedFetch(url, ms = 9000) {
   const ctrl = new AbortController();
   const tid  = setTimeout(() => ctrl.abort(), ms);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal });
-    return res;
-  } finally {
-    clearTimeout(tid);
-  }
+  try   { return await fetch(url, { signal: ctrl.signal }); }
+  finally { clearTimeout(tid); }
 }
 
 async function fetchSentry() {
-  showLoading('sentry-table-wrap', 'Fetching threat data');
-  const urls = [SENTRY_URL, PROXY + encodeURIComponent(SENTRY_URL)];
-  for (const url of urls) {
-    try {
-      const res = await fetchWithTimeout(url, 8000);
-      if (!res.ok) continue;
+  showLoading('sentry-table-wrap', 'Fetching threat data…');
+
+  // 1. Try direct
+  try {
+    const res = await timedFetch(SENTRY_URL);
+    if (res.ok) {
       const json = await res.json();
       const data = json.data || [];
-      if (!data.length) continue;
-      state.sentry.data = data;
-      renderSentryTable(data);
-      return;
-    } catch (_) { /* try next */ }
-  }
-  showError('sentry-table-wrap', 'JPL Sentry API unreachable. Check your connection or try again later.');
+      if (data.length) { state.sentry.data = data; renderSentryTable(data); return; }
+    }
+  } catch (_) {}
+
+  // 2. Try via allorigins proxy
+  try {
+    const proxyUrl = ALLORIGINS + encodeURIComponent(SENTRY_URL);
+    const res = await timedFetch(proxyUrl);
+    if (res.ok) {
+      const wrapper = await res.json();
+      const json    = JSON.parse(wrapper.contents);
+      const data    = json.data || [];
+      if (data.length) { state.sentry.data = data; renderSentryTable(data); return; }
+    }
+  } catch (_) {}
+
+  showError('sentry-table-wrap', 'JPL Sentry API is unreachable from this browser. Try again later.');
 }
 
 function torinoColor(t) {
