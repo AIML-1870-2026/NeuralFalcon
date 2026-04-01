@@ -69,8 +69,11 @@ async function fetchNeows() {
     renderNeowsChart(neos);
     populateSimAsteroidPicker(neos);
   } catch (err) {
-    showError('neo-stats', err.message);
-    showError('neo-table-wrap', err.message);
+    const msg = err.message.includes('429')
+      ? 'NASA DEMO_KEY rate limit hit (30 req/hr). <a href="https://api.nasa.gov/#signUp" target="_blank">Get a free API key</a> and paste it in the top-right box.'
+      : err.message;
+    setHTML('neo-stats', '');
+    setHTML('neo-table-wrap', `<div class="error-msg">⚠ ${msg}</div>`);
   }
 }
 
