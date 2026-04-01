@@ -195,8 +195,12 @@ function prefillSimulator(id) {
 }
 
 // ── TAB 2: SENTRY ──────────────────────────────────────────────────────────
-const SENTRY_URL  = 'https://ssd-api.jpl.nasa.gov/sentry.api';
-const ALLORIGINS  = 'https://api.allorigins.win/get?url=';
+const SENTRY_URL = 'https://ssd-api.jpl.nasa.gov/sentry.api';
+const PROXIES = [
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+];
 
 async function timedFetch(url, ms = 9000) {
   const ctrl = new AbortController();
@@ -208,29 +212,56 @@ async function timedFetch(url, ms = 9000) {
 async function fetchSentry() {
   showLoading('sentry-table-wrap', 'Fetching threat data…');
 
-  // 1. Try direct
-  try {
-    const res = await timedFetch(SENTRY_URL);
-    if (res.ok) {
-      const json = await res.json();
+  // Try direct first, then each proxy
+  const urls = [() => SENTRY_URL, ...PROXIES].map(fn => fn(SENTRY_URL));
+  for (const url of urls) {
+    try {
+      const res = await timedFetch(url, 8000);
+      if (!res.ok) continue;
+      const text = await res.text();
+      const json = JSON.parse(text);
       const data = json.data || [];
       if (data.length) { state.sentry.data = data; renderSentryTable(data); return; }
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
-  // 2. Try via allorigins proxy
-  try {
-    const proxyUrl = ALLORIGINS + encodeURIComponent(SENTRY_URL);
-    const res = await timedFetch(proxyUrl);
-    if (res.ok) {
-      const wrapper = await res.json();
-      const json    = JSON.parse(wrapper.contents);
-      const data    = json.data || [];
-      if (data.length) { state.sentry.data = data; renderSentryTable(data); return; }
-    }
-  } catch (_) {}
+  // All proxies failed — fall back to NeoWs hazardous objects
+  useFallbackThreats();
+}
 
-  showError('sentry-table-wrap', 'JPL Sentry API is unreachable from this browser. Try again later.');
+function useFallbackThreats() {
+  const neos = state.neows.data;
+  if (!neos?.length) {
+    setHTML('sentry-table-wrap', `<div class="info-msg">Sentry API unavailable. Load the <strong>Live Feed</strong> tab first — hazardous objects will appear here automatically.</div>`);
+    return;
+  }
+  const hazardous = neos.filter(n => n.hazardous).sort((a, b) => a.miss_distance - b.miss_distance);
+  if (!hazardous.length) {
+    setHTML('sentry-table-wrap', '<div class="status-msg">No potentially hazardous objects in current date range.</div>');
+    return;
+  }
+  const rows = hazardous.map(n => {
+    const diam = (n.diam_min + n.diam_max) / 2;
+    return `<tr data-id="${n.id}">
+      <td>${n.name}</td>
+      <td>${n.date}</td>
+      <td>${fmtNum(diam, 0)} m</td>
+      <td>${fmtNum(n.miss_distance, 0)} km</td>
+      <td>${fmtNum(n.velocity, 2)} km/s</td>
+    </tr>`;
+  }).join('');
+  setHTML('sentry-table-wrap', `
+    <div class="info-msg" style="margin-bottom:12px">Sentry API unavailable — showing hazardous NEOs from Live Feed.</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Object</th><th>Date</th><th>Diameter</th><th>Miss Distance</th><th>Velocity</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`);
+  document.querySelectorAll('#sentry-table-wrap tbody tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const neo = neos.find(n => n.id === tr.dataset.id);
+      if (neo) { openNeoPanel(neo); globeMarkApproach(neo); }
+    });
+  });
 }
 
 function torinoColor(t) {
