@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asteroid & Impact Risk Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Three.js -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <h1>&#9651; Asteroid &amp; Impact Risk Dashboard</h1>
+  <span class="subtitle">NASA NeoWs · JPL SBDB · JPL Sentry</span>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+    <label for="api-key-input" style="font-size:10px;color:var(--muted);letter-spacing:.5px">NASA API KEY</label>
+    <input id="api-key-input" type="text" placeholder="DEMO_KEY (default)"
+      style="width:180px;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+             font-family:var(--font-body);font-size:11px;padding:5px 8px;border-radius:4px;outline:none">
+    <div class="pulse-dot"></div>
+  </div>
+</header>
+
+<!-- ── TAB BAR ── -->
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn" role="tab" data-tab="neows"  aria-selected="true"  aria-controls="panel-neows"  tabindex="0">&#9679; NeoWs Feed</button>
+  <button class="tab-btn" role="tab" data-tab="sbdb"   aria-selected="false" aria-controls="panel-sbdb"   tabindex="-1">&#9679; SBDB Lookup</button>
+  <button class="tab-btn" role="tab" data-tab="sentry" aria-selected="false" aria-controls="panel-sentry" tabindex="-1">&#9679; Sentry Monitor</button>
+  <button class="tab-btn" role="tab" data-tab="calc"   aria-selected="false" aria-controls="panel-calc"   tabindex="-1">&#9679; Impact Calculator</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 1: NeoWs                                                          -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div id="panel-neows" class="tab-panel active" role="tabpanel">
+
+  <div class="controls">
+    <label for="neo-start">From</label>
+    <input id="neo-start" type="date">
+    <label for="neo-end">To</label>
+    <input id="neo-end" type="date">
+    <button id="neo-fetch-btn" class="btn">Fetch</button>
+  </div>
+
+  <div id="neo-stats"></div>
+
+  <div class="chart-wrap" id="neo-chart-wrap" style="margin-bottom:20px"></div>
+
+  <div id="neo-table-wrap">
+    <div class="status-msg loading">Loading asteroid data</div>
+  </div>
+
+</div>
+
+<!-- NEO side panel -->
+<div id="neo-panel-overlay" class="side-panel-overlay">
+  <div id="neo-panel" class="side-panel">
+    <button id="neo-panel-close" class="close-btn" aria-label="Close">&times;</button>
+    <div id="neo-panel-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 2: SBDB                                                           -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div id="panel-sbdb" class="tab-panel" role="tabpanel">
+
+  <div class="controls">
+    <label for="sbdb-search">Object name or designation</label>
+    <input id="sbdb-search" type="text" placeholder="e.g. 433, Bennu, 99942">
+    <button id="sbdb-search-btn" class="btn">Search</button>
+  </div>
+
+  <div class="info-msg">
+    Try: <strong>433</strong> (Eros) &nbsp;·&nbsp; <strong>101955</strong> (Bennu) &nbsp;·&nbsp;
+    <strong>99942</strong> (Apophis) &nbsp;·&nbsp; <strong>2024 YR4</strong>
+  </div>
+
+  <div id="sbdb-result"></div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 3: Sentry                                                         -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div id="panel-sentry" class="tab-panel" role="tabpanel">
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--muted)"></div> Palermo &lt; −2 (background)
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--warning)"></div> Palermo −2 to 0 (monitor)
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:var(--danger)"></div> Palermo &gt; 0 (alert)
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#ffaa00;border-radius:3px"></div> Torino 1–3
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#ff6600;border-radius:3px"></div> Torino 4–7
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#ff4444;border-radius:3px"></div> Torino 8–10
+    </div>
+  </div>
+
+  <div id="sentry-table-wrap">
+    <div class="status-msg">Click the Sentry tab to load data.</div>
+  </div>
+
+</div>
+
+<!-- Sentry detail modal -->
+<div id="sentry-modal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal">
+    <button id="sentry-modal-close" class="close-btn" aria-label="Close">&times;</button>
+    <h2 id="sentry-modal-title">Impact Solutions</h2>
+    <div id="sentry-modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- TAB 4: Impact Calculator                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div id="panel-calc" class="tab-panel" role="tabpanel">
+
+  <div class="calc-grid">
+
+    <!-- Form -->
+    <div class="calc-form">
+      <h3>Impact Parameters</h3>
+
+      <div class="form-row">
+        <label for="calc-location">Location (city, address, or lat,lon)</label>
+        <input id="calc-location" type="text" placeholder="e.g. New York City">
+      </div>
+
+      <div class="form-row">
+        <label for="calc-diam">Asteroid Diameter (meters)</label>
+        <input id="calc-diam" type="number" value="100" min="1" max="100000">
+      </div>
+
+      <div class="form-row">
+        <label for="calc-density">Impactor Density</label>
+        <select id="calc-density">
+          <option value="porous">Porous rock (~1,500 kg/m³)</option>
+          <option value="solid" selected>Solid rock (~2,700 kg/m³)</option>
+          <option value="iron">Iron (~7,900 kg/m³)</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="calc-velocity">Impact Velocity (km/s)</label>
+        <input id="calc-velocity" type="number" value="17" min="1" max="72">
+      </div>
+
+      <div class="form-row">
+        <label for="calc-angle">
+          Impact Angle
+          <span class="range-val" id="calc-angle-val">45°</span>
+        </label>
+        <input id="calc-angle" type="range" min="15" max="90" value="45">
+      </div>
+
+      <div class="form-row">
+        <label for="calc-target">Target Rock Type</label>
+        <select id="calc-target">
+          <option value="sedimentary" selected>Sedimentary</option>
+          <option value="crystalline">Crystalline</option>
+          <option value="wet_soil">Wet Soil</option>
+        </select>
+      </div>
+
+      <button id="calc-run-btn" class="btn" style="width:100%;margin-top:8px">Calculate Impact</button>
+
+      <div class="info-msg" style="margin-top:12px;font-size:10px">
+        ⚠ Results are educational estimates based on simplified scaling laws (Collins et al. 2005).
+        Not for civil defense use.
+      </div>
+    </div>
+
+    <!-- Map + Globe -->
+    <div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <button id="globe-toggle-btn" class="btn">🌍 Switch to 3D Globe</button>
+      </div>
+
+      <div id="map"></div>
+      <div id="globe-container" style="display:none;height:420px;border-radius:6px;
+           border:1px solid var(--border);overflow:hidden;background:#000008"></div>
+
+      <div id="globe-section" style="display:none">
+        <div class="info-msg" style="margin-top:8px;font-size:10px">
+          Click &amp; drag the globe to rotate. Impact rings shown to scale.
+        </div>
+      </div>
+
+      <div id="impact-results" style="display:none;margin-top:16px">
+        <div class="impact-results">
+          <h3>Impact Effects</h3>
+          <div id="impact-results-inner"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="asteroid-dashboard.js"></script>
+</body>
+</html>
