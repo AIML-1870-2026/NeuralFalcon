@@ -195,12 +195,23 @@ function prefillSimulator(id) {
 const SENTRY_URL = 'https://ssd-api.jpl.nasa.gov/sentry.api';
 const PROXY      = 'https://corsproxy.io/?url=';
 
+async function fetchWithTimeout(url, ms = 8000) {
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal });
+    return res;
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
 async function fetchSentry() {
   showLoading('sentry-table-wrap', 'Fetching threat data');
-  // Try direct first, fall back to CORS proxy
-  for (const url of [SENTRY_URL, PROXY + encodeURIComponent(SENTRY_URL)]) {
+  const urls = [SENTRY_URL, PROXY + encodeURIComponent(SENTRY_URL)];
+  for (const url of urls) {
     try {
-      const res = await fetch(url);
+      const res = await fetchWithTimeout(url, 8000);
       if (!res.ok) continue;
       const json = await res.json();
       const data = json.data || [];
@@ -210,7 +221,7 @@ async function fetchSentry() {
       return;
     } catch (_) { /* try next */ }
   }
-  showError('sentry-table-wrap', 'Could not reach JPL Sentry API. Try again later.');
+  showError('sentry-table-wrap', 'JPL Sentry API unreachable. Check your connection or try again later.');
 }
 
 function torinoColor(t) {
