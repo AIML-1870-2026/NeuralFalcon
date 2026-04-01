@@ -68,6 +68,7 @@ async function fetchNeows() {
     renderNeowsTable(neos);
     renderNeowsChart(neos);
     populateSimAsteroidPicker(neos);
+    plotAllAsteroids(neos);
   } catch (err) {
     const msg = err.message.includes('429')
       ? 'NASA DEMO_KEY rate limit hit (30 req/hr). <a href="https://api.nasa.gov/#signUp" target="_blank">Get a free API key</a> and paste it in the top-right box.'
@@ -557,16 +558,44 @@ function orientGlobe(lat, lng) {
   globe.earth.rotation.set(lat * Math.PI / 180, -(lng + 180) * Math.PI / 180, 0);
 }
 
-// Mark an asteroid's closest approach on the globe (simulated point — approach from deep space)
-function globeMarkApproach(neo) {
+// Deterministic position from asteroid ID string (so pins don't jump on re-render)
+function idToLatLng(id) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (Math.imul(31, h) + id.charCodeAt(i)) | 0;
+  const lat = ((h & 0xffff) / 0xffff) * 160 - 80;
+  const lng = (((h >> 16) & 0xffff) / 0xffff) * 360 - 180;
+  return { lat, lng };
+}
+
+// Plot all NEOs on the globe
+function plotAllAsteroids(neos) {
   clearGlobeMarkers();
-  // Simulate a random point on the sunlit hemisphere based on velocity direction
-  const lat = (Math.random() - 0.5) * 120;
-  const lng = (Math.random() - 0.5) * 360;
-  addGlobePin(lat, lng, neo.hazardous ? 0xff4444 : 0x00d4ff);
+  neos.forEach(neo => {
+    const { lat, lng } = idToLatLng(neo.id);
+    addGlobePin(lat, lng, neo.hazardous ? 0xff4444 : 0x00d4ff);
+  });
+  globe.autoRotate = true;
+  setHTML('globe-status', `${neos.length} asteroids · ${neos.filter(n => n.hazardous).length} hazardous`);
+}
+
+// Highlight a single asteroid (called on row click)
+function globeMarkApproach(neo) {
+  // Re-plot all but pulse the selected one brighter
+  plotAllAsteroids(state.neows.data || [neo]);
+  // Add a larger highlight pin on top
+  const { lat, lng } = idToLatLng(neo.id);
+  const pos  = latLngToVec3(lat, lng, EARTH_R * 1.05);
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.15, 0.28, 32),
+    new THREE.MeshBasicMaterial({ color: neo.hazardous ? 0xff4444 : 0x00d4ff, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+  );
+  ring.position.copy(pos);
+  ring.lookAt(new THREE.Vector3(0, 0, 0));
+  ring.userData.marker = true;
+  globe.scene.add(ring);
   orientGlobe(lat, lng);
   globe.autoRotate = false;
-  setHTML('globe-status', `${neo.name} · ${fmtNum(neo.miss_distance, 0)} km miss distance`);
+  setHTML('globe-status', `${neo.name} · ${fmtNum(neo.miss_distance, 0)} km miss`);
 }
 
 function renderGlobeImpact(lat, lng, r) {
