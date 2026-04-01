@@ -269,7 +269,7 @@ async function fetchSBDB() {
 
     if (d.message) throw new Error(d.message);
 
-    renderSBDB(d);
+    renderSBDB(d, query);
   } catch (err) {
     showError('sbdb-result', err.message.includes('not found') || err.message.includes('No')
       ? `No object found for "${query}". Try a designation like "433" (Eros) or "101955" (Bennu).`
@@ -291,7 +291,7 @@ function getTaxoBadge(orbit) {
   return `<span class="badge ${color}">${cls}</span>`;
 }
 
-function renderSBDB(d) {
+function renderSBDB(d, query) {
   const obj    = d.object || {};
   const orbit  = d.orbit || {};
   const phys   = d.phys_par || [];
@@ -393,8 +393,8 @@ function renderSentryTable(data) {
   if (!data.length) { setHTML('sentry-table-wrap', '<div class="status-msg">No objects tracked.</div>'); return; }
 
   const rows = data.map(obj => {
-    const ps    = parseFloat(obj.ps_cum) || 0;
-    const tor   = parseInt(obj.torino) || 0;
+    const ps    = parseFloat(obj.ps_cum ?? obj.ps_max) || 0;
+    const tor   = parseInt(obj.ts_max ?? obj.torino) || 0;
     const barW  = Math.min(Math.max((ps + 10) * 8, 2), 80);
     const barCol = ps > 0 ? 'var(--danger)' : ps > -2 ? 'var(--warning)' : 'var(--muted)';
     return `
@@ -648,8 +648,9 @@ function initGlobe() {
   const container = document.getElementById('globe-container');
   if (!container || globeRenderer) return;
 
-  const W = container.clientWidth  || 420;
-  const H = container.clientHeight || 420;
+  // container may be hidden; use parent width or fallback
+  const W = container.parentElement?.clientWidth || 520;
+  const H = 420;
 
   globeScene    = new THREE.Scene();
   globeCamera   = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
@@ -778,9 +779,11 @@ function orientGlobeTo(lat, lng) {
 }
 
 function renderGlobe(lat, lng, r) {
-  // Show globe section
-  const globeSection = document.getElementById('globe-section');
-  if (globeSection) globeSection.style.display = 'block';
+  const globeSection    = document.getElementById('globe-section');
+  const globeContainer  = document.getElementById('globe-container');
+  if (globeSection)   globeSection.style.display   = 'block';
+  // Temporarily show container so Three.js can read dimensions
+  if (globeContainer) globeContainer.style.display = 'block';
 
   initGlobe();
   clearGlobeMarkers();
@@ -802,12 +805,19 @@ function initGlobeToggle() {
   const btn = document.getElementById('globe-toggle-btn');
   if (!btn) return;
   btn.addEventListener('click', () => {
-    const mapEl    = document.getElementById('map');
-    const globeEl  = document.getElementById('globe-container');
-    const showing  = globeEl.style.display !== 'none';
-    mapEl.style.display   = showing ? 'block' : 'none';
-    globeEl.style.display = showing ? 'none'  : 'block';
-    btn.textContent = showing ? '🌍 Switch to 3D Globe' : '🗺 Switch to 2D Map';
+    const mapEl   = document.getElementById('map');
+    const globeEl = document.getElementById('globe-container');
+    const showingGlobe = globeEl.style.display !== 'none';
+    mapEl.style.display   = showingGlobe ? 'block' : 'none';
+    globeEl.style.display = showingGlobe ? 'none'  : 'block';
+    btn.textContent = showingGlobe ? '🌍 3D Globe' : '🗺 2D Map';
+    // Resize renderer if globe is now visible
+    if (!showingGlobe && globeRenderer) {
+      const w = globeEl.clientWidth || 520;
+      globeRenderer.setSize(w, 420);
+      globeCamera.aspect = w / 420;
+      globeCamera.updateProjectionMatrix();
+    }
   });
 }
 
