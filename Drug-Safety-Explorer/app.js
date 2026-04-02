@@ -74,7 +74,10 @@ const modalTitle = $('modal-title');
 const modalBody = $('modal-body');
 
 /* ── Splash ──────────────────────────────────────────── */
-btnStart.addEventListener('click', () => splash.classList.add('hidden'));
+btnStart.addEventListener('click', () => {
+  splash.classList.add('hidden');
+  runComparison();
+});
 
 /* ── Autocomplete ────────────────────────────────────── */
 function setupAutocomplete(side) {
