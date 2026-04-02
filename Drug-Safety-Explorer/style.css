@@ -147,6 +147,73 @@ header h1 { font-size: 1.2rem; font-weight: 600; }
   color: var(--red);
 }
 
+/* ── INTERACTION SECTION ─────────────────────────────── */
+#interaction-section {
+  margin: 20px 24px 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+#interaction-section.hidden { display: none; }
+
+.ix-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--navy);
+  color: #fff;
+  font-size: 0.95rem; font-weight: 600;
+}
+.ix-header .ix-drugs { font-size: 0.85rem; font-weight: 400; opacity: 0.8; }
+
+.ix-body { padding: 16px; }
+
+.ix-loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem; }
+.ix-loading .spinner { margin: 0; width: 22px; height: 22px; border-width: 2px; }
+
+.ix-none {
+  font-size: 0.9rem; color: #27AE60; padding: 4px 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.ix-none::before { content: '✓'; font-weight: 700; }
+
+.ix-error { font-size: 0.9rem; color: var(--muted); }
+
+.ix-summary {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+  font-size: 0.88rem;
+}
+.ix-severity-badge {
+  padding: 3px 10px; border-radius: 3px;
+  font-size: 0.78rem; font-weight: 700; color: #fff; white-space: nowrap;
+}
+.sev-high     { background: var(--red); }
+.sev-moderate { background: var(--amber); }
+.sev-minor    { background: var(--gray); }
+.sev-unknown  { background: #95A5A6; }
+
+.ix-list { display: flex; flex-direction: column; gap: 10px; }
+
+.ix-card {
+  border-left: 4px solid var(--gray);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 10px 12px;
+  font-size: 0.87rem;
+}
+.ix-card.sev-high     { border-left-color: var(--red); }
+.ix-card.sev-moderate { border-left-color: var(--amber); }
+.ix-card.sev-minor    { border-left-color: var(--gray); }
+
+.ix-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
+}
+.ix-source { font-size: 0.75rem; color: var(--muted); margin-left: auto; }
+.ix-desc { line-height: 1.55; color: var(--text); }
+
 /* ── PANELS ──────────────────────────────────────────── */
 .panels-wrap {
   flex: 1;

@@ -163,6 +163,7 @@ function runComparison() {
   hideDropdown($('ac-a'));
   hideDropdown($('ac-b'));
   ['a', 'b'].forEach(side => loadPanel(side));
+  loadInteractions(drugA, drugB);
 }
 
 /* ── Panel loading ───────────────────────────────────── */
@@ -413,6 +414,122 @@ function renderRecalls(side, results, drug) {
       </div>`;
   });
   container.innerHTML = html;
+}
+
+/* ── Drug Interactions ───────────────────────────────── */
+const ixSection = $('interaction-section');
+
+async function loadInteractions(drugA, drugB) {
+  ixSection.classList.remove('hidden');
+  ixSection.innerHTML = `
+    <div class="ix-header">
+      <span>Drug Interactions</span>
+      <span class="ix-drugs">${escHtml(drugA)} &amp; ${escHtml(drugB)}</span>
+    </div>
+    <div class="ix-body">
+      <div class="ix-loading"><div class="spinner"></div>Checking for interactions…</div>
+    </div>`;
+
+  try {
+    const [rxcuiA, rxcuiB] = await Promise.all([
+      fetchRxCUI(drugA),
+      fetchRxCUI(drugB),
+    ]);
+
+    if (!rxcuiA || !rxcuiB) {
+      setIxError(`Could not identify one or both drugs in RxNorm. Try using the exact generic name.`);
+      return;
+    }
+
+    const url = `https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxcuiA}+${rxcuiB}`;
+    const res = await fetch(url);
+    if (!res.ok) { setIxError('Unable to load interaction data. Please try again.'); return; }
+    const data = await res.json();
+    renderInteractions(data, drugA, drugB);
+  } catch {
+    setIxError('Unable to load interaction data. Please try again.');
+  }
+}
+
+async function fetchRxCUI(drug) {
+  try {
+    const res = await fetch(`https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(drug)}&search=1`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.idGroup?.rxnormId?.[0] || null;
+  } catch { return null; }
+}
+
+function renderInteractions(data, drugA, drugB) {
+  const groups = data.fullInteractionTypeGroup || [];
+  const pairs = [];
+
+  groups.forEach(group => {
+    const source = group.sourceName || 'Unknown';
+    (group.fullInteractionType || []).forEach(fit => {
+      (fit.interactionPair || []).forEach(pair => {
+        pairs.push({
+          severity: (pair.severity || 'unknown').toLowerCase(),
+          description: pair.description || '',
+          source,
+        });
+      });
+    });
+  });
+
+  const headerHtml = `
+    <div class="ix-header">
+      <span>Drug Interactions</span>
+      <span class="ix-drugs">${escHtml(drugA)} &amp; ${escHtml(drugB)}</span>
+    </div>`;
+
+  if (!pairs.length) {
+    ixSection.innerHTML = headerHtml + `<div class="ix-body"><p class="ix-none">No known interactions found between these two drugs.</p></div>`;
+    return;
+  }
+
+  // Sort: high → moderate → minor → unknown
+  const sevOrder = { high: 0, moderate: 1, minor: 2, unknown: 3 };
+  pairs.sort((a, b) => (sevOrder[a.severity] ?? 3) - (sevOrder[b.severity] ?? 3));
+
+  const worstSev = pairs[0].severity;
+  const badgeClass = `sev-${worstSev}`;
+  const badgeLabel = worstSev.charAt(0).toUpperCase() + worstSev.slice(1);
+  const count = pairs.length;
+
+  let bodyHtml = `
+    <div class="ix-summary">
+      <span>${count} interaction${count !== 1 ? 's' : ''} found</span>
+      <span class="ix-severity-badge ${badgeClass}">Highest: ${badgeLabel}</span>
+    </div>
+    <div class="ix-list">`;
+
+  pairs.forEach(p => {
+    const sev = p.severity in sevOrder ? p.severity : 'unknown';
+    const label = sev.charAt(0).toUpperCase() + sev.slice(1);
+    bodyHtml += `
+      <div class="ix-card sev-${sev}">
+        <div class="ix-card-header">
+          <span class="ix-severity-badge ${`sev-${sev}`}">${label}</span>
+          <span class="ix-source">${escHtml(p.source)}</span>
+        </div>
+        <div class="ix-desc">${escHtml(p.description)}</div>
+      </div>`;
+  });
+
+  bodyHtml += `</div>`;
+  ixSection.innerHTML = headerHtml + `<div class="ix-body">${bodyHtml}</div>`;
+}
+
+function setIxError(msg) {
+  const current = ixSection.querySelector('.ix-header')?.outerHTML || '';
+  ixSection.querySelector('.ix-body').innerHTML = `<p class="ix-error">${escHtml(msg)}</p>`;
+  // preserve header if present
+  if (!current) {
+    ixSection.innerHTML = `<div class="ix-body"><p class="ix-error">${escHtml(msg)}</p></div>`;
+  } else {
+    ixSection.querySelector('.ix-body').innerHTML = `<p class="ix-error">${escHtml(msg)}</p>`;
+  }
 }
 
 /* ── Help / Modal ────────────────────────────────────── */
