@@ -109,19 +109,24 @@ function setupAutocomplete(side) {
   });
 }
 
+// Uses RxNorm (NIH) — pharmaceutical drugs only, no cosmetics/personal care
 async function fetchSuggestions(q, dropdown, input) {
   try {
-    const enc = encodeURIComponent(q);
-    const url = `${ENDPOINTS.label}?search=openfda.brand_name:"${enc}"+openfda.generic_name:"${enc}"&limit=6`;
+    const url = `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(q)}&maxEntries=8`;
     const res = await fetch(url);
     if (!res.ok) { hideDropdown(dropdown); return; }
     const data = await res.json();
-    const names = new Set();
-    (data.results || []).forEach(r => {
-      (r.openfda?.brand_name || []).forEach(n => names.add(n));
-      (r.openfda?.generic_name || []).forEach(n => names.add(n));
-    });
-    const list = [...names].slice(0, 6);
+    const candidates = data.approximateGroup?.candidate || [];
+    const seen = new Set();
+    const list = [];
+    for (const c of candidates) {
+      const name = c.name;
+      if (name && !seen.has(name.toLowerCase())) {
+        seen.add(name.toLowerCase());
+        list.push(name);
+        if (list.length === 6) break;
+      }
+    }
     if (!list.length) { hideDropdown(dropdown); return; }
     dropdown.innerHTML = list.map(n => `<div class="ac-item">${escHtml(n)}</div>`).join('');
     dropdown.classList.remove('hidden');
@@ -163,7 +168,6 @@ function runComparison() {
 /* ── Panel loading ───────────────────────────────────── */
 function loadPanel(side) {
   const drug = state.drugs[side];
-  const panel = $(`panel-${side}`);
   $(`panel-name-${side}`).textContent = drug;
   state.activeTab[side] = 'events';
   setActiveTab(side, 'events');
@@ -307,10 +311,12 @@ function drawChart(side, data) {
 /* ── Label & Warnings ────────────────────────────────── */
 async function fetchLabel(side, drug) {
   try {
-    const url = `${ENDPOINTS.label}?search=openfda.brand_name:"${encodeURIComponent(drug)}"+openfda.generic_name:"${encodeURIComponent(drug)}"&limit=1`;
+    const enc = encodeURIComponent(drug);
+    // product_type filter ensures we only match actual pharmaceutical drugs
+    const url = `${ENDPOINTS.label}?search=(openfda.brand_name:"${enc}"+openfda.generic_name:"${enc}")+AND+(product_type:"HUMAN+PRESCRIPTION+DRUG"+product_type:"HUMAN+OTC+DRUG")&limit=1`;
     const res = await fetch(url);
     if (!res.ok) {
-      if (res.status === 404) { setTabEmpty(side, 'label', `No label data found for "${drug}".`); return; }
+      if (res.status === 404) { setTabEmpty(side, 'label', `"${drug}" does not appear to be a pharmaceutical drug in the FDA database.`); return; }
       throw new Error(`HTTP ${res.status}`);
     }
     const data = await res.json();
