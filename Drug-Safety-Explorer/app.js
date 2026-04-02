@@ -112,24 +112,15 @@ function setupAutocomplete(side) {
   });
 }
 
-// Uses RxNorm (NIH) — pharmaceutical drugs only, no cosmetics/personal care
+// RxNorm spelling suggestions — returns clean ingredient names only (e.g. "ibuprofen", not "ibuprofen 200 MG Oral Tablet")
 async function fetchSuggestions(q, dropdown, input) {
+  if (q.length < 4) { hideDropdown(dropdown); return; }
   try {
-    const url = `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(q)}&maxEntries=8`;
+    const url = `https://rxnav.nlm.nih.gov/REST/spellingsuggestions.json?name=${encodeURIComponent(q)}`;
     const res = await fetch(url);
     if (!res.ok) { hideDropdown(dropdown); return; }
     const data = await res.json();
-    const candidates = data.approximateGroup?.candidate || [];
-    const seen = new Set();
-    const list = [];
-    for (const c of candidates) {
-      const name = c.name;
-      if (name && !seen.has(name.toLowerCase())) {
-        seen.add(name.toLowerCase());
-        list.push(name);
-        if (list.length === 6) break;
-      }
-    }
+    const list = (data.suggestionGroup?.suggestionList?.suggestion || []).slice(0, 6);
     if (!list.length) { hideDropdown(dropdown); return; }
     dropdown.innerHTML = list.map(n => `<div class="ac-item">${escHtml(n)}</div>`).join('');
     dropdown.classList.remove('hidden');
@@ -316,8 +307,7 @@ function drawChart(side, data) {
 async function fetchLabel(side, drug) {
   try {
     const enc = encodeURIComponent(drug);
-    // product_type filter ensures we only match actual pharmaceutical drugs
-    const url = `${ENDPOINTS.label}?search=(openfda.brand_name:"${enc}"+openfda.generic_name:"${enc}")+AND+(product_type:"HUMAN+PRESCRIPTION+DRUG"+product_type:"HUMAN+OTC+DRUG")&limit=1`;
+    const url = `${ENDPOINTS.label}?search=openfda.generic_name:"${enc}"&limit=1`;
     const res = await fetch(url);
     if (!res.ok) {
       if (res.status === 404) { setTabEmpty(side, 'label', `"${drug}" does not appear to be a pharmaceutical drug in the FDA database.`); return; }
@@ -419,120 +409,62 @@ function renderRecalls(side, results, drug) {
   container.innerHTML = html;
 }
 
-/* ── Drug Interactions ───────────────────────────────── */
+/* ── Co-reported Adverse Events (cross-drug) ─────────── */
 const ixSection = $('interaction-section');
 
 async function loadInteractions(drugA, drugB) {
   ixSection.classList.remove('hidden');
-  ixSection.innerHTML = `
-    <div class="ix-header">
-      <span>Drug Interactions</span>
-      <span class="ix-drugs">${escHtml(drugA)} &amp; ${escHtml(drugB)}</span>
-    </div>
-    <div class="ix-body">
-      <div class="ix-loading"><div class="spinner"></div>Checking for interactions…</div>
-    </div>`;
+  setIxHtml(drugA, drugB, `<div class="ix-loading"><div class="spinner"></div>Analyzing co-reported events…</div>`);
 
   try {
-    const [rxcuiA, rxcuiB] = await Promise.all([
-      fetchRxCUI(drugA),
-      fetchRxCUI(drugB),
-    ]);
-
-    if (!rxcuiA || !rxcuiB) {
-      setIxError(`Could not identify one or both drugs in RxNorm. Try using the exact generic name.`);
+    const encA = encodeURIComponent(drugA);
+    const encB = encodeURIComponent(drugB);
+    // FAERS: reports where BOTH drugs appear — shows reactions most often co-reported
+    const url = `${ENDPOINTS.events}?search=patient.drug.medicinalproduct:"${encA}"+AND+patient.drug.medicinalproduct:"${encB}"&count=patient.reaction.reactionmeddrapt.exact&limit=10`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      if (res.status === 404) {
+        setIxHtml(drugA, drugB, `<p class="ix-none">No co-reported adverse events found for this drug combination in the FDA database.</p>`);
+      } else {
+        setIxHtml(drugA, drugB, `<p class="ix-error">Unable to load data. Please try again.</p>`);
+      }
       return;
     }
-
-    const url = `https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxcuiA}+${rxcuiB}`;
-    const res = await fetch(url);
-    if (!res.ok) { setIxError('Unable to load interaction data. Please try again.'); return; }
     const data = await res.json();
-    renderInteractions(data, drugA, drugB);
+    renderCoEvents(drugA, drugB, data.results || []);
   } catch {
-    setIxError('Unable to load interaction data. Please try again.');
+    setIxHtml(drugA, drugB, `<p class="ix-error">Unable to load data. Please try again.</p>`);
   }
 }
 
-async function fetchRxCUI(drug) {
-  try {
-    const res = await fetch(`https://rxnav.nlm.nih.gov/REST/rxcui.json?name=${encodeURIComponent(drug)}&search=1`);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.idGroup?.rxnormId?.[0] || null;
-  } catch { return null; }
-}
-
-function renderInteractions(data, drugA, drugB) {
-  const groups = data.fullInteractionTypeGroup || [];
-  const pairs = [];
-
-  groups.forEach(group => {
-    const source = group.sourceName || 'Unknown';
-    (group.fullInteractionType || []).forEach(fit => {
-      (fit.interactionPair || []).forEach(pair => {
-        pairs.push({
-          severity: (pair.severity || 'unknown').toLowerCase(),
-          description: pair.description || '',
-          source,
-        });
-      });
-    });
-  });
-
-  const headerHtml = `
-    <div class="ix-header">
-      <span>Drug Interactions</span>
-      <span class="ix-drugs">${escHtml(drugA)} &amp; ${escHtml(drugB)}</span>
-    </div>`;
-
-  if (!pairs.length) {
-    ixSection.innerHTML = headerHtml + `<div class="ix-body"><p class="ix-none">No known interactions found between these two drugs.</p></div>`;
+function renderCoEvents(drugA, drugB, results) {
+  if (!results.length) {
+    setIxHtml(drugA, drugB, `<p class="ix-none">No co-reported adverse events found for this combination.</p>`);
     return;
   }
-
-  // Sort: high → moderate → minor → unknown
-  const sevOrder = { high: 0, moderate: 1, minor: 2, unknown: 3 };
-  pairs.sort((a, b) => (sevOrder[a.severity] ?? 3) - (sevOrder[b.severity] ?? 3));
-
-  const worstSev = pairs[0].severity;
-  const badgeClass = `sev-${worstSev}`;
-  const badgeLabel = worstSev.charAt(0).toUpperCase() + worstSev.slice(1);
-  const count = pairs.length;
-
-  let bodyHtml = `
-    <div class="ix-summary">
-      <span>${count} interaction${count !== 1 ? 's' : ''} found</span>
-      <span class="ix-severity-badge ${badgeClass}">Highest: ${badgeLabel}</span>
-    </div>
-    <div class="ix-list">`;
-
-  pairs.forEach(p => {
-    const sev = p.severity in sevOrder ? p.severity : 'unknown';
-    const label = sev.charAt(0).toUpperCase() + sev.slice(1);
-    bodyHtml += `
-      <div class="ix-card sev-${sev}">
-        <div class="ix-card-header">
-          <span class="ix-severity-badge ${`sev-${sev}`}">${label}</span>
-          <span class="ix-source">${escHtml(p.source)}</span>
-        </div>
-        <div class="ix-desc">${escHtml(p.description)}</div>
-      </div>`;
+  const total = results.reduce((s, r) => s + r.count, 0);
+  let body = `
+    <p class="ae-total" style="margin-bottom:12px">
+      <strong>${total.toLocaleString()}</strong> reports where both drugs were taken together
+      <span style="margin-left:8px;font-size:0.78rem;color:var(--muted)">(Source: FDA FAERS — voluntary reports, not proof of causation)</span>
+    </p>
+    <table class="ae-table">
+      <thead><tr><th>Reaction</th><th>Reports</th></tr></thead>
+      <tbody>`;
+  results.forEach(r => {
+    body += `<tr><td>${escHtml(r.term)}</td><td>${r.count.toLocaleString()}</td></tr>`;
   });
-
-  bodyHtml += `</div>`;
-  ixSection.innerHTML = headerHtml + `<div class="ix-body">${bodyHtml}</div>`;
+  body += `</tbody></table>`;
+  setIxHtml(drugA, drugB, body);
 }
 
-function setIxError(msg) {
-  const current = ixSection.querySelector('.ix-header')?.outerHTML || '';
-  ixSection.querySelector('.ix-body').innerHTML = `<p class="ix-error">${escHtml(msg)}</p>`;
-  // preserve header if present
-  if (!current) {
-    ixSection.innerHTML = `<div class="ix-body"><p class="ix-error">${escHtml(msg)}</p></div>`;
-  } else {
-    ixSection.querySelector('.ix-body').innerHTML = `<p class="ix-error">${escHtml(msg)}</p>`;
-  }
+function setIxHtml(drugA, drugB, bodyHtml) {
+  ixSection.innerHTML = `
+    <div class="ix-header">
+      <span>Co-reported Adverse Events</span>
+      <span class="ix-drugs">${escHtml(drugA)} &amp; ${escHtml(drugB)}</span>
+    </div>
+    <div class="ix-body">${bodyHtml}</div>`;
 }
 
 /* ── Help / Modal ────────────────────────────────────── */
