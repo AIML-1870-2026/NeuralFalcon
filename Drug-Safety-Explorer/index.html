@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drug Safety Explorer</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── SPLASH ──────────────────────────────────────── -->
+<div id="splash">
+  <div class="splash-box">
+    <h1>Drug Safety Explorer</h1>
+    <p>Compare two drugs side-by-side using live data from the FDA — adverse event reports, official label warnings, and recall history, all in one place.</p>
+    <p>Data is sourced from <strong>OpenFDA</strong>, a public database maintained by the U.S. Food &amp; Drug Administration. Reports are voluntarily submitted and do not imply causation. Always consult a qualified healthcare provider before making decisions about medications.</p>
+    <p class="disclaimer">This product uses publicly available data from the U.S. Food and Drug Administration (FDA). FDA is not responsible for this product and does not endorse or recommend it.</p>
+    <button id="btn-start">Get Started</button>
+  </div>
+</div>
+
+<!-- ── APP ─────────────────────────────────────────── -->
+<div id="app">
+  <header>
+    <h1>Drug Safety Explorer</h1>
+  </header>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <div class="search-field">
+      <label for="drug-a">Drug A</label>
+      <input id="drug-a" type="text" placeholder="e.g. ibuprofen" autocomplete="off" spellcheck="false">
+      <div id="ac-a" class="ac-dropdown hidden"></div>
+    </div>
+    <div class="search-field">
+      <label for="drug-b">Drug B</label>
+      <input id="drug-b" type="text" placeholder="e.g. aspirin" autocomplete="off" spellcheck="false">
+      <div id="ac-b" class="ac-dropdown hidden"></div>
+    </div>
+    <button id="btn-compare">Compare</button>
+    <p id="search-error" class="search-error"></p>
+  </div>
+
+  <!-- Panels -->
+  <div class="panels-wrap">
+    <!-- Panel A -->
+    <div class="drug-panel" id="panel-a">
+      <div class="panel-header">
+        <span class="drug-label" id="panel-name-a">Drug A</span>
+        <span class="tag">A</span>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-btn-a-events" data-side="a" data-tab="events">
+          Adverse Events <span class="help-icon" data-topic="events" title="What is this data?">?</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-a-label" data-side="a" data-tab="label">
+          Label &amp; Warnings <span class="help-icon" data-topic="label" title="What is this data?">?</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-a-recalls" data-side="a" data-tab="recalls">
+          Recall History <span class="help-icon" data-topic="recalls" title="What is this data?">?</span>
+        </button>
+      </div>
+      <div class="tab-content active" id="tab-a-events">
+        <div class="empty-state">Enter a drug name and click Compare to begin.</div>
+      </div>
+      <div class="tab-content" id="tab-a-label">
+        <div class="empty-state">Enter a drug name and click Compare to begin.</div>
+      </div>
+      <div class="tab-content" id="tab-a-recalls">
+        <div class="empty-state">Enter a drug name and click Compare to begin.</div>
+      </div>
+    </div>
+
+    <!-- Panel B -->
+    <div class="drug-panel" id="panel-b">
+      <div class="panel-header">
+        <span class="drug-label" id="panel-name-b">Drug B</span>
+        <span class="tag">B</span>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-btn-b-events" data-side="b" data-tab="events">
+          Adverse Events <span class="help-icon" data-topic="events" title="What is this data?">?</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-b-label" data-side="b" data-tab="label">
+          Label &amp; Warnings <span class="help-icon" data-topic="label" title="What is this data?">?</span>
+        </button>
+        <button class="tab-btn" id="tab-btn-b-recalls" data-side="b" data-tab="recalls">
+          Recall History <span class="help-icon" data-topic="recalls" title="What is this data?">?</span>
+        </button>
+      </div>
+      <div class="tab-content active" id="tab-b-events">
+        <div class="empty-state">Enter a drug name and click Compare to begin.</div>
+      </div>
+      <div class="tab-content" id="tab-b-label">
+        <div class="empty-state">Enter a drug name and click Compare to begin.</div>
+      </div>
+      <div class="tab-content" id="tab-b-recalls">
+        <div class="empty-state">Enter a drug name and click Compare to begin.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>This product uses publicly available data from the U.S. Food and Drug Administration (FDA). FDA is not responsible for the product and does not endorse or recommend this or any other product.</p>
+    <p>This tool is for educational purposes only and is not a substitute for professional medical advice. Always consult a qualified healthcare provider before making decisions about medications.</p>
+  </footer>
+</div>
+
+<!-- ── MODAL ───────────────────────────────────────── -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">About this data</h3>
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
