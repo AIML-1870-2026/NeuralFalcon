@@ -16,39 +16,113 @@ const POPUP_CONTENT = {
     title: 'About Adverse Events (FAERS)',
     body: `
       <h4>What is this data?</h4>
-      <p>These reports come from the FDA Adverse Event Reporting System (FAERS) — a database of voluntary safety reports submitted by patients, healthcare providers, and manufacturers.</p>
+      <p>These reports come from the FDA Adverse Event Reporting System (FAERS) — a database of voluntary safety reports submitted by patients, healthcare providers, and drug manufacturers.</p>
       <h4>How is it collected?</h4>
-      <p>Anyone can submit a report to FDA MedWatch. Most reports come from healthcare professionals and drug manufacturers, who are required by law to report serious events.</p>
+      <p>Anyone can submit a report to FDA MedWatch online or by phone. Healthcare professionals and manufacturers are legally required to report serious events; patients can report voluntarily.</p>
+      <h4>What the color rating means</h4>
+      <p><strong style="color:#C0392B">■ High</strong> — reaction appears in the top 30% of reports for this drug.<br>
+         <strong style="color:#E67E22">■ Moderate</strong> — middle range of reported reactions.<br>
+         <strong style="color:#7F8C8D">■ Low</strong> — reported less frequently relative to other reactions.</p>
       <h4>What it can tell you</h4>
-      <p>Which reactions have been reported in association with a drug, and how frequently those reports appear in the database.</p>
+      <p>Which reactions have been reported alongside this drug, and how often. Higher counts suggest the reaction is more commonly noted — not necessarily more dangerous.</p>
       <h4>What it cannot tell you</h4>
-      <p>A report does not mean the drug caused the reaction. Counts reflect reports, not confirmed cases. Under-reporting is common — only a fraction of real-world events are ever submitted.</p>
+      <p>A report is <em>not</em> proof the drug caused the reaction. The same patient may have had other conditions or medications. Under-reporting is common — most real-world events are never submitted to FAERS.</p>
     `
   },
   label: {
     title: 'About Label & Warnings',
     body: `
       <h4>What is this data?</h4>
-      <p>This is the official FDA-approved drug label (also called the "package insert") — the same document that comes with prescription drugs.</p>
+      <p>This is the official FDA-approved drug label (also called the "prescribing information" or "package insert") — the legally binding document drug manufacturers must provide.</p>
       <h4>How is it collected?</h4>
-      <p>Labels are reviewed and approved by the FDA before a drug can be marketed. They are updated when new safety information becomes available.</p>
+      <p>Labels are reviewed and approved by the FDA before a drug reaches market. They are updated whenever significant new safety information emerges from clinical trials or post-market surveillance.</p>
+      <h4>What the card colors mean</h4>
+      <p><strong style="color:#C0392B">Red border</strong> — highest-priority safety information (warnings, contraindications). These represent situations where the drug should be used with extreme caution or avoided entirely.<br>
+         <strong style="color:#E67E22">Amber border</strong> — important but generally manageable safety information (drug interactions, known adverse reactions).</p>
       <h4>What it can tell you</h4>
-      <p>Official warnings, contraindications, drug interactions, and known adverse reactions as approved by the FDA.</p>
+      <p>Official, FDA-reviewed safety information including which patients should not take the drug, what other drugs it interacts with, and what side effects have been observed in clinical trials.</p>
       <h4>What it cannot tell you</h4>
-      <p>Labels may not reflect the most recent post-market experience. Not all drugs have complete structured label data in OpenFDA.</p>
+      <p>Labels are based on clinical trial populations and may not reflect every patient's experience. Rare or newly discovered effects may not yet be reflected.</p>
     `
   },
   recalls: {
     title: 'About Recall History',
     body: `
       <h4>What is this data?</h4>
-      <p>These are FDA drug recall enforcement reports — actions taken by manufacturers to remove products from the market.</p>
-      <h4>How is it collected?</h4>
-      <p>FDA publishes recall notices after companies voluntarily recall products or after FDA requests a recall. Records go back to the 1990s.</p>
+      <p>These are FDA drug recall enforcement reports — formal actions taken when a product is removed from the market due to a safety concern or manufacturing problem.</p>
+      <h4>How is it classified?</h4>
+      <p><strong style="color:#C0392B">Class I (Red)</strong> — Most serious. Reasonable probability that using the product will cause serious harm or death. Example: contamination with a toxic substance.<br>
+         <strong style="color:#E67E22">Class II (Amber)</strong> — May cause temporary or reversible adverse health effects. Remote probability of serious harm. Example: incorrect dosage labeling.<br>
+         <strong style="color:#7F8C8D">Class III (Gray)</strong> — Unlikely to cause adverse health effects, but violates FDA regulations. Example: minor labeling errors.</p>
       <h4>What it can tell you</h4>
-      <p>Whether a drug (or formulation) has been recalled, the reason for the recall, and its severity classification.</p>
+      <p>Whether a specific brand or formulation of this drug has been recalled, why, and how serious the concern was.</p>
       <h4>What it cannot tell you</h4>
-      <p>A recall does not mean the drug is dangerous in general — most are due to manufacturing issues like labeling errors or contamination of specific lots.</p>
+      <p>Recalls are almost always for specific lots or manufacturing runs — not the entire drug. A recalled product does not mean the drug itself is unsafe. Always check the lot number against the FDA recall notice.</p>
+    `
+  },
+  'co-events': {
+    title: 'About Co-reported Adverse Events',
+    body: `
+      <h4>What is this data?</h4>
+      <p>These are FDA FAERS reports where <em>both</em> drugs were listed as part of the same patient's medication regimen when an adverse event occurred.</p>
+      <h4>How is it collected?</h4>
+      <p>The same voluntary FAERS reporting system used for individual adverse events. Reports where both drugs appear together are filtered and the most common reactions are counted.</p>
+      <h4>What the color rating means</h4>
+      <p>The same relative scale as individual adverse events — red indicates the reaction appears in the top 30% of co-reports, amber in the middle range, gray less frequently.</p>
+      <h4>What it can tell you</h4>
+      <p>Which reactions have been most commonly reported when patients were taking both drugs together. This can highlight potential interaction signals worth discussing with a healthcare provider.</p>
+      <h4>Important limitations</h4>
+      <p>This is <em>not</em> a formal drug interaction database. Co-occurrence in a report does not mean the two drugs caused the reaction together. The patient may have had underlying conditions, other medications, or the reaction may have been unrelated to either drug. Always consult a pharmacist or physician about drug combinations.</p>
+    `
+  },
+  'label-warnings': {
+    title: 'What are Warnings?',
+    body: `
+      <h4>Definition</h4>
+      <p>Warnings describe serious risks that can occur with this drug — situations requiring close monitoring, dosage adjustment, or avoidance in certain patients.</p>
+      <h4>Boxed Warnings ("Black Box")</h4>
+      <p>The most serious FDA warning appears in a black box at the top of the label. It means the FDA has determined the risk is significant enough to warrant special attention from prescribers and patients.</p>
+      <h4>What to do</h4>
+      <p>Read warnings carefully before taking a medication. If a warning describes your personal health situation (e.g., kidney disease, pregnancy, age), discuss it with your doctor or pharmacist before starting the drug.</p>
+    `
+  },
+  'label-interactions': {
+    title: 'What are Drug Interactions?',
+    body: `
+      <h4>Definition</h4>
+      <p>Drug interactions occur when two or more substances (drugs, foods, supplements) affect how a medication works in your body. The effect can be an increase or decrease in the drug's effectiveness, or new side effects.</p>
+      <h4>Types of interactions</h4>
+      <p><strong>Pharmacokinetic</strong> — One drug changes how your body absorbs, distributes, metabolizes, or excretes another (e.g., one drug slows liver enzymes that break down another, causing it to build up).<br>
+         <strong>Pharmacodynamic</strong> — Two drugs have additive or opposing effects on the same body system (e.g., two blood-thinners taken together may increase bleeding risk).</p>
+      <h4>What to do</h4>
+      <p>Tell every healthcare provider about all medications you take, including over-the-counter drugs, vitamins, and herbal supplements. A pharmacist is the best resource for checking for interactions.</p>
+    `
+  },
+  'label-contraindications': {
+    title: 'What are Contraindications?',
+    body: `
+      <h4>Definition</h4>
+      <p>A contraindication is a specific situation where a drug should <em>not</em> be used because the risk clearly outweighs any possible benefit.</p>
+      <h4>Examples</h4>
+      <p>A blood thinner may be contraindicated in patients with active bleeding. A drug processed by the liver may be contraindicated in patients with severe liver disease. Some drugs are contraindicated during pregnancy.</p>
+      <h4>Absolute vs. Relative</h4>
+      <p><strong>Absolute contraindication</strong> — The drug must not be used under any circumstances in this situation.<br>
+         <strong>Relative contraindication</strong> — The drug should be used with caution and only if benefits outweigh risks; requires careful clinical judgment.</p>
+      <h4>What to do</h4>
+      <p>If a contraindication applies to you, tell your doctor. Do not stop a prescribed medication without consulting your healthcare provider first.</p>
+    `
+  },
+  'label-adverse': {
+    title: 'What are Adverse Reactions (Label)?',
+    body: `
+      <h4>Definition</h4>
+      <p>This section lists side effects observed during clinical trials and post-market experience that are considered potentially related to the drug.</p>
+      <h4>How is this different from FAERS?</h4>
+      <p>Label adverse reactions went through clinical review — researchers determined there was a reasonable likelihood the drug contributed to these effects. FAERS reports are raw, unreviewed submissions where causation is unknown.</p>
+      <h4>Frequency language</h4>
+      <p>Labels often use standardized frequency terms: <strong>Very common</strong> (&gt;10% of patients), <strong>Common</strong> (1–10%), <strong>Uncommon</strong> (0.1–1%), <strong>Rare</strong> (&lt;0.1%).</p>
+      <h4>What to do</h4>
+      <p>If you experience a listed reaction, don't panic — most are manageable. Contact your healthcare provider if a side effect is severe, persistent, or concerns you.</p>
     `
   }
 };
@@ -225,6 +299,13 @@ async function fetchEvents(side, drug) {
   }
 }
 
+function countRating(count, max) {
+  const pct = count / max;
+  if (pct > 0.5) return { cls: 'rating-high',     dot: '●', label: 'High' };
+  if (pct > 0.15) return { cls: 'rating-moderate', dot: '●', label: 'Moderate' };
+  return              { cls: 'rating-low',          dot: '●', label: 'Low' };
+}
+
 function renderEvents(side, results, drug) {
   if (!results.length) { setTabEmpty(side, 'events', `No adverse event reports found for "${drug}".`); return; }
 
@@ -233,12 +314,24 @@ function renderEvents(side, results, drug) {
   state.sortState[side] = { col: 'count', dir: 'desc' };
 
   const total = tableData.reduce((s, r) => s + r.count, 0);
+  const top = tableData[0];
   const container = $(`tab-${side}-events`);
   container.innerHTML = `
-    <p class="ae-total">Total reports: <strong>${total.toLocaleString()}</strong></p>
+    <div class="interpret-box">
+      <strong>${total.toLocaleString()}</strong> adverse event reports found.
+      Most frequently reported: <strong>${escHtml(top.name)}</strong> (${top.count.toLocaleString()} reports).
+      <button class="interpret-help" onclick="showPopup('events')">What does this mean?</button>
+    </div>
+    <div class="rating-legend">
+      <span class="rating-high">● High</span>
+      <span class="rating-moderate">● Moderate</span>
+      <span class="rating-low">● Low</span>
+      <span class="rating-note">— frequency relative to top reaction</span>
+    </div>
     <div class="chart-wrap"><canvas id="chart-${side}" height="220"></canvas></div>
     <table class="ae-table" id="ae-table-${side}">
       <thead><tr>
+        <th style="width:32px"></th>
         <th data-col="name" data-side="${side}">Reaction <span class="sort-arrow">↕</span></th>
         <th data-col="count" data-side="${side}">Reports <span class="sort-arrow">↓</span></th>
       </tr></thead>
@@ -261,8 +354,15 @@ function renderAeTable(side, data) {
     if (typeof av === 'string') return dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return dir === 'asc' ? av - bv : bv - av;
   });
-  tbody.innerHTML = sorted.map(r => `<tr><td>${escHtml(r.name)}</td><td>${r.count.toLocaleString()}</td></tr>`).join('');
-  // update arrows
+  const max = Math.max(...sorted.map(r => r.count));
+  tbody.innerHTML = sorted.map(r => {
+    const { cls, dot, label } = countRating(r.count, max);
+    return `<tr>
+      <td><span class="rating-dot ${cls}" title="${label}">${dot}</span></td>
+      <td>${escHtml(r.name)}</td>
+      <td>${r.count.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
   $(`ae-table-${side}`).querySelectorAll('th[data-col]').forEach(th => {
     const arrow = th.querySelector('.sort-arrow');
     if (th.dataset.col === col) arrow.textContent = dir === 'asc' ? '↑' : '↓';
@@ -321,29 +421,44 @@ async function fetchLabel(side, drug) {
 }
 
 const LABEL_FIELDS = [
-  { key: 'warnings', title: 'Warnings' },
-  { key: 'drug_interactions', title: 'Drug Interactions' },
-  { key: 'contraindications', title: 'Contraindications' },
-  { key: 'adverse_reactions', title: 'Adverse Reactions' },
+  { key: 'warnings',          title: 'Warnings',          sev: 'high',     popup: 'label-warnings' },
+  { key: 'contraindications', title: 'Contraindications', sev: 'high',     popup: 'label-contraindications' },
+  { key: 'drug_interactions', title: 'Drug Interactions', sev: 'moderate', popup: 'label-interactions' },
+  { key: 'adverse_reactions', title: 'Adverse Reactions', sev: 'moderate', popup: 'label-adverse' },
 ];
 
 function renderLabel(side, result, drug) {
   if (!result) { setTabEmpty(side, 'label', `No label data found for "${drug}".`); return; }
   const container = $(`tab-${side}-label`);
-  let html = '';
-  LABEL_FIELDS.forEach(({ key, title }) => {
+  const found = LABEL_FIELDS.filter(f => result[f.key]);
+  if (!found.length) { setTabEmpty(side, 'label', `No label fields available for "${drug}".`); return; }
+
+  const highCount = found.filter(f => f.sev === 'high').length;
+  const interpretText = highCount > 0
+    ? `${highCount} high-priority safety section${highCount > 1 ? 's' : ''} found (shown in red). Review carefully with your healthcare provider.`
+    : `No high-priority warnings found in this label. Review all sections with your healthcare provider.`;
+
+  let html = `
+    <div class="interpret-box interpret-box--${highCount > 0 ? 'warn' : 'ok'}">
+      ${escHtml(interpretText)}
+      <button class="interpret-help" onclick="showPopup('label')">About this data</button>
+    </div>`;
+
+  found.forEach(({ key, title, sev, popup }) => {
     const val = result[key];
-    if (!val) return;
     const text = Array.isArray(val) ? val.join('\n') : String(val);
     const cardId = `lc-${side}-${key}`;
     html += `
-      <div class="label-card">
-        <div class="label-card-title">${title}</div>
+      <div class="label-card label-card--${sev}">
+        <div class="label-card-title">
+          ${escHtml(title)}
+          <button class="inline-help" onclick="showPopup('${popup}')" title="What is this?">?</button>
+        </div>
         <div class="label-card-body collapsed" id="${cardId}">${escHtml(text)}</div>
         <button class="read-more-btn" data-target="${cardId}">Read more</button>
       </div>`;
   });
-  if (!html) { setTabEmpty(side, 'label', `No label fields available for "${drug}".`); return; }
+
   container.innerHTML = html;
   container.querySelectorAll('.read-more-btn').forEach(btn => {
     btn.addEventListener('click', () => toggleReadMore(btn));
@@ -443,16 +558,30 @@ function renderCoEvents(drugA, drugB, results) {
     return;
   }
   const total = results.reduce((s, r) => s + r.count, 0);
+  const top = results[0];
+  const max = top.count;
   let body = `
-    <p class="ae-total" style="margin-bottom:12px">
-      <strong>${total.toLocaleString()}</strong> reports where both drugs were taken together
-      <span style="margin-left:8px;font-size:0.78rem;color:var(--muted)">(Source: FDA FAERS — voluntary reports, not proof of causation)</span>
-    </p>
+    <div class="interpret-box" style="margin-bottom:12px">
+      <strong>${total.toLocaleString()}</strong> reports found where patients were taking both drugs.
+      Most common reaction: <strong>${escHtml(top.term)}</strong>.
+      <button class="interpret-help" onclick="showPopup('co-events')">What does this mean?</button>
+    </div>
+    <div class="rating-legend">
+      <span class="rating-high">● High</span>
+      <span class="rating-moderate">● Moderate</span>
+      <span class="rating-low">● Low</span>
+      <span class="rating-note">— frequency relative to top reaction</span>
+    </div>
     <table class="ae-table">
-      <thead><tr><th>Reaction</th><th>Reports</th></tr></thead>
+      <thead><tr><th style="width:32px"></th><th>Reaction</th><th>Reports</th></tr></thead>
       <tbody>`;
   results.forEach(r => {
-    body += `<tr><td>${escHtml(r.term)}</td><td>${r.count.toLocaleString()}</td></tr>`;
+    const { cls, dot, label } = countRating(r.count, max);
+    body += `<tr>
+      <td><span class="rating-dot ${cls}" title="${label}">${dot}</span></td>
+      <td>${escHtml(r.term)}</td>
+      <td>${r.count.toLocaleString()}</td>
+    </tr>`;
   });
   body += `</tbody></table>`;
   setIxHtml(drugA, drugB, body);
@@ -468,15 +597,19 @@ function setIxHtml(drugA, drugB, bodyHtml) {
 }
 
 /* ── Help / Modal ────────────────────────────────────── */
+function showPopup(topic) {
+  const content = POPUP_CONTENT[topic];
+  if (!content) return;
+  modalTitle.textContent = content.title;
+  modalBody.innerHTML = content.body;
+  modalOverlay.classList.add('open');
+}
+window.showPopup = showPopup; // expose for inline onclick handlers
+
 document.querySelectorAll('.help-icon').forEach(icon => {
   icon.addEventListener('click', e => {
     e.stopPropagation();
-    const topic = icon.dataset.topic;
-    const content = POPUP_CONTENT[topic];
-    if (!content) return;
-    modalTitle.textContent = content.title;
-    modalBody.innerHTML = content.body;
-    modalOverlay.classList.add('open');
+    showPopup(icon.dataset.topic);
   });
 });
 

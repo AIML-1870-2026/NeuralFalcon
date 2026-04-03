@@ -313,6 +313,69 @@ header h1 { font-size: 1.2rem; font-weight: 600; }
 .empty-state.success { color: #27AE60; }
 .empty-state.error { color: var(--red); }
 
+/* ── INTERPRET BOX ───────────────────────────────────── */
+.interpret-box {
+  background: #EBF5FB;
+  border-left: 3px solid var(--blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 9px 12px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.interpret-box--warn {
+  background: #FDEDEC;
+  border-left-color: var(--red);
+}
+.interpret-box--ok {
+  background: #EAFAF1;
+  border-left-color: #27AE60;
+}
+.interpret-help {
+  display: inline;
+  margin-left: 8px;
+  font-size: 0.78rem;
+  color: var(--blue);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+}
+.interpret-help:hover { text-decoration: underline; }
+
+/* ── COLOR RATING ────────────────────────────────────── */
+.rating-legend {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: 0.78rem; margin-bottom: 10px;
+}
+.rating-high     { color: var(--red);   font-weight: 600; }
+.rating-moderate { color: var(--amber); font-weight: 600; }
+.rating-low      { color: var(--gray);  font-weight: 600; }
+.rating-note     { color: var(--muted); font-weight: 400; }
+
+.rating-dot { font-size: 0.9rem; cursor: default; }
+.rating-dot.rating-high     { color: var(--red); }
+.rating-dot.rating-moderate { color: var(--amber); }
+.rating-dot.rating-low      { color: var(--gray); }
+
+/* inline ? button inside label card titles */
+.inline-help {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: none;
+  font-size: 0.65rem;
+  cursor: pointer;
+  opacity: 0.6;
+  margin-left: 6px;
+  vertical-align: middle;
+  color: inherit;
+}
+.inline-help:hover { opacity: 1; }
+
 /* ── ADVERSE EVENTS ──────────────────────────────────── */
 .ae-total {
   font-size: 0.85rem;
@@ -337,10 +400,14 @@ header h1 { font-size: 1.2rem; font-weight: 600; }
 /* ── LABEL ───────────────────────────────────────────── */
 .label-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-left: 4px solid var(--border);
+  border-radius: 0 var(--radius) var(--radius) 0;
   margin-bottom: 12px;
   overflow: hidden;
 }
+.label-card--high     { border-left-color: var(--red); }
+.label-card--moderate { border-left-color: var(--amber); }
+
 .label-card-title {
   background: #F4F6F9;
   padding: 8px 12px;
@@ -349,6 +416,7 @@ header h1 { font-size: 1.2rem; font-weight: 600; }
   color: var(--navy);
   text-transform: uppercase;
   letter-spacing: .5px;
+  display: flex; align-items: center;
 }
 .label-card-body {
   padding: 10px 12px;
