@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM API Tester</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0D0D0D;
+  --panel: #141414;
+  --border: #2A2A2A;
+  --accent: #F59E0B;
+  --accent-dim: #92610a;
+  --text: #D4D4D4;
+  --text-dim: #6B6B6B;
+  --text-bright: #F0F0F0;
+  --red: #EF4444;
+  --green: #22C55E;
+  --orange: #F97316;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --sidebar-w: 280px;
+}
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 13px; line-height: 1.5; }
+button { cursor: pointer; font-family: var(--font-ui); font-size: 13px; }
+input, textarea, select { font-family: var(--font-mono); font-size: 12px; background: var(--bg); color: var(--text); border: 1px solid var(--border); outline: none; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+select { cursor: pointer; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3A3A3A; }
+
+/* ── Layout ── */
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Header */
+#header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; height: 44px;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#header .logo { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 700; letter-spacing: 0.05em; }
+#header .subtitle { font-size: 11px; color: var(--text-dim); }
+#header .spacer { flex: 1; }
+#btn-hamburger { display: none; background: none; border: 1px solid var(--border); color: var(--text); padding: 4px 8px; }
+#btn-compare-toggle {
+  background: none; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 4px 12px; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+  transition: all 0.15s;
+}
+#btn-compare-toggle:hover, #btn-compare-toggle.active { border-color: var(--accent); color: var(--accent); }
+
+/* Body */
+#body { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar */
+#sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--panel); border-right: 1px solid var(--border);
+  overflow-y: auto; display: flex; flex-direction: column; gap: 0;
+}
+.sidebar-section { border-bottom: 1px solid var(--border); }
+.sidebar-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 12px; cursor: pointer; user-select: none;
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim);
+  transition: color 0.15s;
+}
+.sidebar-section-header:hover { color: var(--text); }
+.sidebar-section-header .chevron { font-size: 10px; transition: transform 0.2s; }
+.sidebar-section-header.open .chevron { transform: rotate(90deg); }
+.sidebar-section-body { display: none; padding: 8px 12px 12px; }
+.sidebar-section-body.open { display: block; }
+
+/* Main content */
+#main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+/* Compare layout */
+#panels { display: flex; flex: 1; overflow: hidden; }
+.panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); }
+.panel:last-child { border-right: none; }
+
+/* Footer */
+#footer {
+  padding: 4px 16px; background: var(--panel); border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  font-size: 10px; color: var(--text-dim); flex-shrink: 0;
+}
+#footer kbd {
+  background: var(--bg); border: 1px solid var(--border);
+  padding: 1px 5px; border-radius: 2px; font-family: var(--font-mono); font-size: 10px;
+}
+
+/* ── Form elements ── */
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+.field input[type="text"], .field input[type="number"], .field textarea, .field select {
+  width: 100%; padding: 5px 8px; border-radius: 2px;
+}
+.field textarea { resize: vertical; min-height: 60px; }
+.field .hint { font-size: 10px; color: var(--text-dim); margin-top: 3px; font-family: var(--font-mono); }
+
+/* Range slider */
+.slider-row { display: flex; align-items: center; gap: 8px; }
+.slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+.slider-val { font-family: var(--font-mono); font-size: 11px; color: var(--accent); min-width: 36px; text-align: right; }
+
+/* Segmented control */
+.seg { display: flex; border: 1px solid var(--border); border-radius: 2px; overflow: hidden; }
+.seg button {
+  flex: 1; padding: 5px 8px; background: none; border: none; color: var(--text-dim);
+  font-size: 11px; transition: all 0.15s; border-right: 1px solid var(--border);
+}
+.seg button:last-child { border-right: none; }
+.seg button:hover { color: var(--text); background: #1A1A1A; }
+.seg button.active { background: var(--accent); color: #000; font-weight: 600; }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 12px; background: var(--panel); flex-shrink: 0; }
+.tabs button {
+  background: none; border: none; color: var(--text-dim); padding: 8px 12px;
+  font-size: 11px; letter-spacing: 0.05em; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; transition: all 0.15s;
+}
+.tabs button:hover { color: var(--text); }
+.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Buttons ── */
+.btn { padding: 6px 14px; border-radius: 2px; font-size: 12px; border: 1px solid; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+.btn-primary:hover { background: #D97706; border-color: #D97706; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-danger { background: none; color: var(--red); border-color: var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-ghost { background: none; color: var(--text-dim); border-color: var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: #444; }
+.btn-icon { background: none; border: none; color: var(--text-dim); padding: 4px 6px; font-size: 14px; }
+.btn-icon:hover { color: var(--text); }
+
+/* ── Key status badge ── */
+.key-status { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; }
+.key-status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
+.key-status .dot.ok { background: var(--green); }
+.key-preview { color: var(--text-dim); }
+
+/* Drop zone */
+.drop-zone {
+  border: 1px dashed var(--border); border-radius: 2px; padding: 16px;
+  text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 8px;
+  font-size: 11px; color: var(--text-dim);
+}
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); color: var(--accent); }
+.drop-zone input { display: none; }
+
+/* ── Output pane ── */
+.output-pane {
+  flex: 1; overflow-y: auto; padding: 12px;
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+  background: var(--bg);
+}
+.output-pane .placeholder { color: var(--text-dim); font-style: italic; }
+.output-pane .error-msg { color: var(--red); }
+.output-pane .stopped { color: var(--text-dim); }
+
+/* ── Metrics bar ── */
+.metrics-bar {
+  display: flex; flex-wrap: wrap; gap: 0;
+  background: var(--panel); border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.metric {
+  display: flex; flex-direction: column; padding: 6px 12px;
+  border-right: 1px solid var(--border); min-width: 80px;
+}
+.metric:last-child { border-right: none; }
+.metric .m-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+.metric .m-value { font-family: var(--font-mono); font-size: 12px; color: var(--text-bright); }
+.metric .m-value.good { color: var(--green); }
+
+/* ── Prompt area ── */
+.prompt-area { padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.prompt-area textarea {
+  width: 100%; height: 100px; padding: 8px; resize: vertical;
+  font-family: var(--font-mono); font-size: 12px; line-height: 1.6;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text);
+}
+.prompt-area textarea:focus { border-color: var(--accent); }
+.prompt-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.prompt-meta .est { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); }
+.prompt-actions { display: flex; gap: 6px; align-items: center; }
+
+/* Schema editor */
+.schema-area { padding: 0 12px 10px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: none; }
+.schema-area.visible { display: block; }
+.schema-area textarea {
+  width: 100%; height: 80px; padding: 8px; resize: vertical;
+  font-family: var(--font-mono); font-size: 11px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+  color: var(--text);
+}
+.schema-status { font-size: 10px; margin-top: 3px; font-family: var(--font-mono); }
+.schema-status.ok { color: var(--green); }
+.schema-status.err { color: var(--red); }
+
+/* ── Panel header ── */
+.panel-header {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  background: var(--panel); border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.panel-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+
+/* ── Notification ── */
+.toast {
+  position: fixed; bottom: 32px; right: 16px; z-index: 9999;
+  background: var(--panel); border: 1px solid var(--border);
+  padding: 10px 16px; font-size: 12px; border-radius: 2px;
+  animation: fadein 0.2s; max-width: 320px;
+}
+.toast.error { border-color: var(--red); color: var(--red); }
+.toast.warn { border-color: var(--orange); color: var(--orange); }
+.toast.info { border-color: var(--accent); color: var(--accent); }
+@keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── History table ── */
+.history-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: var(--font-mono); }
+.history-table th { text-align: left; padding: 4px 6px; color: var(--text-dim); font-weight: normal; font-size: 9px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.history-table td { padding: 4px 6px; border-bottom: 1px solid #1A1A1A; }
+.history-table tr:hover td { background: #1A1A1A; cursor: pointer; }
+.history-empty { color: var(--text-dim); font-size: 11px; padding: 8px 0; }
+
+/* ── Comparison summary ── */
+#compare-summary {
+  padding: 12px 16px; background: var(--panel); border-top: 1px solid var(--border);
+  display: none; flex-shrink: 0;
+}
+#compare-summary.visible { display: block; }
+#compare-summary h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 8px; }
+.compare-grid { display: grid; grid-template-columns: auto 1fr 1fr; gap: 1px; background: var(--border); font-family: var(--font-mono); font-size: 11px; }
+.compare-cell { background: var(--bg); padding: 5px 10px; }
+.compare-cell.header { background: var(--panel); color: var(--text-dim); font-size: 9px; text-transform: uppercase; }
+.compare-cell.winner { color: var(--green); }
+.compare-cell.label { color: var(--text-dim); font-size: 10px; }
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  #sidebar { position: fixed; left: -var(--sidebar-w); top: 44px; bottom: 0; z-index: 100; transition: left 0.2s; }
+  #sidebar.open { left: 0; }
+  #btn-hamburger { display: block; }
+  #panels { flex-direction: column; }
+  .panel { min-height: 50%; }
+}
+
+/* Example presets list */
+.preset-category { margin-bottom: 8px; }
+.preset-category-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 4px; padding-left: 2px; }
+.preset-item {
+  display: block; width: 100%; text-align: left; background: none;
+  border: none; color: var(--text-dim); padding: 4px 6px; border-radius: 2px;
+  font-size: 11px; cursor: pointer; transition: all 0.12s;
+}
+.preset-item:hover { color: var(--text); background: #1A1A1A; }
+.preset-item::before { content: '▸ '; color: var(--accent); font-size: 9px; }
+
+/* Provider inline selects for compare mode */
+.inline-provider { display: flex; gap: 6px; align-items: center; flex: 1; }
+.inline-provider select { padding: 3px 6px; border-radius: 2px; font-size: 11px; background: var(--bg); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── HEADER ── -->
+  <div id="header">
+    <button id="btn-hamburger" onclick="toggleSidebar()">☰</button>
+    <span class="logo">⬡ LLM API TESTER</span>
+    <span class="subtitle">v1.0</span>
+    <div class="spacer"></div>
+    <button id="btn-compare-toggle" class="btn" onclick="toggleCompare()">◫ Compare</button>
+  </div>
+
+  <!-- ── BODY ── -->
+  <div id="body">
+
+    <!-- ── SIDEBAR ── -->
+    <div id="sidebar">
+
+      <!-- API Keys -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header open" onclick="toggleSection(this)">
+          <span>API Keys</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body open" id="section-keys">
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+               ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <input type="file" id="file-input" accept=".env,.csv" onchange="onFileChange(event)">
+            Drop <code>.env</code> or <code>.csv</code><br>or click to browse
+          </div>
+          <div class="field">
+            <label>Anthropic Key</label>
+            <div class="key-status" id="key-status-anthropic">
+              <div class="dot" id="dot-anthropic"></div>
+              <span class="key-preview" id="preview-anthropic">Not loaded</span>
+            </div>
+            <input type="text" id="key-input-anthropic" placeholder="sk-ant-..." style="margin-top:5px;width:100%;padding:4px 6px;" oninput="onManualKey('anthropic', this.value)">
+          </div>
+          <div class="field">
+            <label>OpenAI Key</label>
+            <div class="key-status" id="key-status-openai">
+              <div class="dot" id="dot-openai"></div>
+              <span class="key-preview" id="preview-openai">Not loaded</span>
+            </div>
+            <input type="text" id="key-input-openai" placeholder="sk-..." style="margin-top:5px;width:100%;padding:4px 6px;" oninput="onManualKey('openai', this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Provider / Model -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header open" onclick="toggleSection(this)">
+          <span>Provider & Model</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body open" id="section-provider">
+          <div class="field">
+            <label>Provider</label>
+            <div class="seg">
+              <button id="seg-anthropic" class="active" onclick="setProvider('anthropic')">Anthropic</button>
+              <button id="seg-openai" onclick="setProvider('openai')">OpenAI</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <select id="model-select" onchange="state.model = this.value" style="width:100%;padding:5px 8px;border-radius:2px;"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameters -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" onclick="toggleSection(this)">
+          <span>Parameters</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body" id="section-params">
+          <div class="field">
+            <label>Temperature</label>
+            <div class="slider-row">
+              <input type="range" min="0" max="2" step="0.01" value="1" id="sl-temp" oninput="syncSlider('temp',this.value)">
+              <span class="slider-val" id="val-temp">1.00</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Max Tokens</label>
+            <input type="number" id="inp-max-tokens" value="1024" min="1" max="32000" style="width:100%;padding:5px 8px;border-radius:2px;" oninput="state.maxTokens=parseInt(this.value)||1024">
+          </div>
+          <div class="field">
+            <label>Top-p</label>
+            <div class="slider-row">
+              <input type="range" min="0" max="1" step="0.01" value="1" id="sl-topp" oninput="syncSlider('topp',this.value)">
+              <span class="slider-val" id="val-topp">1.00</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>System Prompt</label>
+            <textarea id="inp-system" rows="3" style="width:100%;padding:5px 8px;font-family:var(--font-mono);font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:2px;" oninput="state.systemPrompt=this.value">You are a helpful assistant.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Mode -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header open" onclick="toggleSection(this)">
+          <span>Output Mode</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body open" id="section-mode">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <button class="preset-item active-mode" id="mode-text" onclick="setMode('text')" style="color:var(--accent)">Text</button>
+            <button class="preset-item" id="mode-json" onclick="setMode('json')">JSON</button>
+            <button class="preset-item" id="mode-structured" onclick="setMode('structured')">Structured (Schema)</button>
+            <button class="preset-item" id="mode-streaming" onclick="setMode('streaming')">Streaming</button>
+            <button class="preset-item" id="mode-tool" onclick="setMode('tool')">Tool / Function Call</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Prompts -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" onclick="toggleSection(this)">
+          <span>Example Prompts</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body" id="section-examples">
+          <div id="examples-list"></div>
+        </div>
+      </div>
+
+      <!-- Request History -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" onclick="toggleSection(this)">
+          <span>Request History</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body" id="section-history">
+          <div id="history-list"><p class="history-empty">No requests yet.</p></div>
+          <button class="btn btn-ghost" style="width:100%;margin-top:8px;font-size:11px;" onclick="exportHistoryCsv()">Export CSV</button>
+        </div>
+      </div>
+
+    </div><!-- /sidebar -->
+
+    <!-- ── MAIN ── -->
+    <div id="main">
+      <div id="panels">
+
+        <!-- Panel A (single / left) -->
+        <div class="panel" id="panel-a">
+          <div class="panel-header" id="panel-a-header" style="display:none;">
+            <span class="panel-label">A</span>
+            <div class="inline-provider">
+              <select id="pa-provider" onchange="setPanelProvider('a', this.value)" style="padding:3px 6px;border-radius:2px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);">
+                <option value="anthropic">Anthropic</option>
+                <option value="openai">OpenAI</option>
+              </select>
+              <select id="pa-model" style="flex:1;padding:3px 6px;border-radius:2px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);"></select>
+            </div>
+          </div>
+          <!-- Prompt area -->
+          <div class="prompt-area">
+            <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);display:block;margin-bottom:5px;">User Message</label>
+            <textarea id="prompt-a" placeholder="Enter your prompt here..." oninput="onPromptInput('a')"></textarea>
+            <div class="prompt-meta">
+              <span class="est" id="est-a">~0 tokens</span>
+              <div class="prompt-actions">
+                <button class="btn btn-ghost" style="font-size:11px;" onclick="clearPanel('a')">Clear</button>
+                <button class="btn btn-icon" title="Copy response" onclick="copyResponse('a')">⎘</button>
+                <button class="btn btn-danger" id="btn-stop-a" style="display:none;font-size:11px;" onclick="stopRequest('a')">■ Stop</button>
+                <button class="btn btn-primary" id="btn-send-a" onclick="sendRequest('a')">Send ↵</button>
+              </div>
+            </div>
+          </div>
+          <!-- Schema editor -->
+          <div class="schema-area" id="schema-area-a">
+            <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);display:block;margin-bottom:4px;">JSON Schema / Tool Definition</label>
+            <textarea id="schema-a" placeholder='{"type":"object","properties":{...}}' oninput="validateSchema('a')"></textarea>
+            <div class="schema-status" id="schema-status-a"></div>
+          </div>
+          <!-- Output -->
+          <div class="output-pane" id="output-a"><span class="placeholder">Response will appear here...</span></div>
+          <!-- Metrics -->
+          <div class="metrics-bar" id="metrics-a">
+            <div class="metric"><span class="m-label">TTFB</span><span class="m-value" id="m-ttfb-a">—</span></div>
+            <div class="metric"><span class="m-label">Total</span><span class="m-value" id="m-total-a">—</span></div>
+            <div class="metric"><span class="m-label">Prompt Tok</span><span class="m-value" id="m-ptok-a">—</span></div>
+            <div class="metric"><span class="m-label">Comp Tok</span><span class="m-value" id="m-ctok-a">—</span></div>
+            <div class="metric"><span class="m-label">Tok/s</span><span class="m-value" id="m-tps-a">—</span></div>
+            <div class="metric"><span class="m-label">Cost</span><span class="m-value" id="m-cost-a">—</span></div>
+            <div class="metric"><span class="m-label">Model</span><span class="m-value" id="m-model-a" style="font-size:10px;">—</span></div>
+          </div>
+        </div><!-- /panel-a -->
+
+        <!-- Panel B (compare mode only) -->
+        <div class="panel" id="panel-b" style="display:none;">
+          <div class="panel-header">
+            <span class="panel-label">B</span>
+            <div class="inline-provider">
+              <select id="pb-provider" onchange="setPanelProvider('b', this.value)" style="padding:3px 6px;border-radius:2px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);">
+                <option value="anthropic">Anthropic</option>
+                <option value="openai" selected>OpenAI</option>
+              </select>
+              <select id="pb-model" style="flex:1;padding:3px 6px;border-radius:2px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);"></select>
+            </div>
+            <label style="font-size:10px;color:var(--text-dim);display:flex;align-items:center;gap:4px;margin-left:8px;">
+              <input type="checkbox" id="sync-prompt" checked onchange="state.syncPrompt=this.checked"> Sync prompt
+            </label>
+            <button class="btn btn-primary" id="btn-send-both" onclick="sendBoth()" style="margin-left:auto;font-size:11px;">Send Both</button>
+          </div>
+          <div class="prompt-area" id="prompt-area-b">
+            <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);display:block;margin-bottom:5px;">User Message</label>
+            <textarea id="prompt-b" placeholder="Enter your prompt here..." oninput="onPromptInput('b')"></textarea>
+            <div class="prompt-meta">
+              <span class="est" id="est-b">~0 tokens</span>
+              <div class="prompt-actions">
+                <button class="btn btn-ghost" style="font-size:11px;" onclick="clearPanel('b')">Clear</button>
+                <button class="btn btn-icon" title="Copy response" onclick="copyResponse('b')">⎘</button>
+                <button class="btn btn-danger" id="btn-stop-b" style="display:none;font-size:11px;" onclick="stopRequest('b')">■ Stop</button>
+              </div>
+            </div>
+          </div>
+          <div class="schema-area" id="schema-area-b">
+            <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);display:block;margin-bottom:4px;">JSON Schema / Tool Definition</label>
+            <textarea id="schema-b" placeholder='{"type":"object","properties":{...}}' oninput="validateSchema('b')"></textarea>
+            <div class="schema-status" id="schema-status-b"></div>
+          </div>
+          <div class="output-pane" id="output-b"><span class="placeholder">Response will appear here...</span></div>
+          <div class="metrics-bar" id="metrics-b">
+            <div class="metric"><span class="m-label">TTFB</span><span class="m-value" id="m-ttfb-b">—</span></div>
+            <div class="metric"><span class="m-label">Total</span><span class="m-value" id="m-total-b">—</span></div>
+            <div class="metric"><span class="m-label">Prompt Tok</span><span class="m-value" id="m-ptok-b">—</span></div>
+            <div class="metric"><span class="m-label">Comp Tok</span><span class="m-value" id="m-ctok-b">—</span></div>
+            <div class="metric"><span class="m-label">Tok/s</span><span class="m-value" id="m-tps-b">—</span></div>
+            <div class="metric"><span class="m-label">Cost</span><span class="m-value" id="m-cost-b">—</span></div>
+            <div class="metric"><span class="m-label">Model</span><span class="m-value" id="m-model-b" style="font-size:10px;">—</span></div>
+          </div>
+        </div><!-- /panel-b -->
+
+      </div><!-- /panels -->
+
+      <!-- Comparison summary -->
+      <div id="compare-summary">
+        <h3>Comparison Summary</h3>
+        <div class="compare-grid" id="compare-grid"></div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body -->
+
+  <!-- ── FOOTER ── -->
+  <div id="footer">
+    <span><kbd>Cmd+Enter</kbd> Send</span>
+    <span><kbd>Esc</kbd> Stop</span>
+    <span style="margin-left:auto;">LLM API Tester · NeuralFalcon · AIML 1870</span>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+const keys = { anthropic: '', openai: '' };
+
+const state = {
+  provider: 'anthropic',
+  model: 'claude-sonnet-4-5',
+  temperature: 1.0,
+  maxTokens: 1024,
+  topP: 1.0,
+  systemPrompt: 'You are a helpful assistant.',
+  mode: 'text',
+  compareMode: false,
+  syncPrompt: true,
+};
+
+const panelState = {
+  a: { provider: 'anthropic', model: 'claude-sonnet-4-5', abortCtrl: null, metrics: {} },
+  b: { provider: 'openai',    model: 'gpt-4o',            abortCtrl: null, metrics: {} },
+};
+
+const history = [];
+
+// ═══════════════════════════════════════════════════════
+//  PRICE TABLE
+// ═══════════════════════════════════════════════════════
+const PRICES = {
+  'claude-opus-4-5':            [15.00, 75.00],
+  'claude-sonnet-4-5':          [3.00,  15.00],
+  'claude-3-7-sonnet-20250219': [3.00,  15.00],
+  'claude-3-5-haiku-20241022':  [0.80,   4.00],
+  'claude-3-opus-20240229':     [15.00, 75.00],
+  'gpt-4o':                     [2.50,  10.00],
+  'gpt-4o-mini':                [0.15,   0.60],
+  'o3':                         [10.00, 40.00],
+  'o3-mini':                    [1.10,   4.40],
+  'o1':                         [15.00, 60.00],
+  'o1-mini':                    [3.00,  12.00],
+  'gpt-4-turbo':                [10.00, 30.00],
+  'gpt-4':                      [30.00, 60.00],
+  'gpt-3.5-turbo':              [0.50,   1.50],
+};
+
+// ═══════════════════════════════════════════════════════
+//  MODEL LISTS
+// ═══════════════════════════════════════════════════════
+const MODELS = {
+  anthropic: [
+    { group: 'Claude 4', models: ['claude-opus-4-5', 'claude-sonnet-4-5'] },
+    { group: 'Claude 3.x', models: ['claude-3-7-sonnet-20250219', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'] },
+  ],
+  openai: [
+    { group: 'GPT-4o', models: ['gpt-4o', 'gpt-4o-mini'] },
+    { group: 'o-series', models: ['o3', 'o3-mini', 'o1', 'o1-mini'] },
+    { group: 'GPT-4 Turbo', models: ['gpt-4-turbo', 'gpt-4'] },
+    { group: 'GPT-3.5', models: ['gpt-3.5-turbo'] },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════
+//  EXAMPLE PROMPTS
+// ═══════════════════════════════════════════════════════
+const EXAMPLES = [
+  {
+    category: '📝 Text Generation',
+    items: [
+      { label: 'Haiku about distributed systems', prompt: 'Write a haiku about distributed systems.' },
+      { label: 'Summarize in 3 bullets', prompt: 'Summarize the following text in 3 bullet points:\n\n[Paste your text here]' },
+      { label: 'Decline a meeting email', prompt: 'Draft a professional email declining a meeting request.' },
+    ]
+  },
+  {
+    category: '🧠 Reasoning',
+    items: [
+      { label: 'Train problem step-by-step', prompt: 'Solve this step by step: If a train leaves Station A at 9:00 AM traveling at 60 mph, and another train leaves Station B 150 miles away at 10:00 AM traveling at 80 mph toward Station A, at what time do they meet?' },
+      { label: 'Microservices vs monolith', prompt: 'What are the pros and cons of microservices vs monoliths? Be specific with examples.' },
+    ]
+  },
+  {
+    category: '🧩 Structured Output',
+    items: [
+      {
+        label: 'Extract name/email/company',
+        prompt: 'Extract the person\'s name, email, and company from this text:\n\n"Hi, I\'m Alex Johnson from Acme Corp. You can reach me at alex.johnson@acme.com."',
+        schema: '{\n  "type": "object",\n  "properties": {\n    "name": { "type": "string" },\n    "email": { "type": "string" },\n    "company": { "type": "string" }\n  },\n  "required": ["name", "email", "company"]\n}',
+        mode: 'structured'
+      },
+      {
+        label: '5 book recommendations',
+        prompt: 'Return a JSON array of 5 book recommendations with title, author, and year.',
+        schema: '{\n  "type": "array",\n  "items": {\n    "type": "object",\n    "properties": {\n      "title": { "type": "string" },\n      "author": { "type": "string" },\n      "year": { "type": "integer" }\n    },\n    "required": ["title", "author", "year"]\n  }\n}',
+        mode: 'json'
+      },
+      {
+        label: 'Classify support ticket',
+        prompt: 'Classify this support ticket by urgency and category:\n\n"My account has been locked and I cannot access any of my data. I have an important presentation in 2 hours."',
+        schema: '{\n  "type": "object",\n  "properties": {\n    "urgency": { "type": "string", "enum": ["low", "medium", "high"] },\n    "category": { "type": "string" },\n    "summary": { "type": "string" }\n  },\n  "required": ["urgency", "category", "summary"]\n}',
+        mode: 'structured'
+      },
+    ]
+  },
+  {
+    category: '🔧 Tool / Function Call',
+    items: [
+      {
+        label: 'Weather in Paris',
+        prompt: "What's the weather like in Paris right now?",
+        schema: '{\n  "name": "get_weather",\n  "description": "Get the current weather for a location",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "location": { "type": "string", "description": "City name" },\n      "unit": { "type": "string", "enum": ["celsius", "fahrenheit"] }\n    },\n    "required": ["location"]\n  }\n}',
+        mode: 'tool'
+      },
+      {
+        label: 'Search AI news',
+        prompt: 'Search for the latest news on AI breakthroughs.',
+        schema: '{\n  "name": "web_search",\n  "description": "Search the web for information",\n  "input_schema": {\n    "type": "object",\n    "properties": {\n      "query": { "type": "string", "description": "Search query" }\n    },\n    "required": ["query"]\n  }\n}',
+        mode: 'tool'
+      },
+    ]
+  },
+  {
+    category: '💬 Chat / Multi-turn',
+    items: [
+      { label: 'Socratic tutor starter', prompt: 'You are a Socratic tutor. Ask me questions about the French Revolution to help me think critically rather than just giving me the answers.' },
+    ]
+  },
+];
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+function init() {
+  buildModelDropdown('model-select', 'anthropic');
+  buildModelDropdown('pa-model', 'anthropic');
+  buildModelDropdown('pb-model', 'openai');
+  document.getElementById('pb-model').value = 'gpt-4o';
+  panelState.b.model = 'gpt-4o';
+  buildExamples();
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); state.compareMode ? sendBoth() : sendRequest('a'); }
+    if (e.key === 'Escape') { stopRequest('a'); stopRequest('b'); }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODEL DROPDOWN
+// ═══════════════════════════════════════════════════════
+function buildModelDropdown(selectId, provider) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '';
+  MODELS[provider].forEach(g => {
+    const og = document.createElement('optgroup');
+    og.label = g.group;
+    g.models.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m; o.textContent = m;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════
+function toggleSection(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROVIDER / MODEL
+// ═══════════════════════════════════════════════════════
+function setProvider(p) {
+  state.provider = p;
+  panelState.a.provider = p;
+  document.getElementById('seg-anthropic').classList.toggle('active', p === 'anthropic');
+  document.getElementById('seg-openai').classList.toggle('active', p === 'openai');
+  buildModelDropdown('model-select', p);
+  buildModelDropdown('pa-model', p);
+  document.getElementById('pa-model').value = document.getElementById('model-select').value;
+  const newModel = MODELS[p][0].models[0];
+  state.model = newModel;
+  panelState.a.model = newModel;
+}
+function setPanelProvider(panel, p) {
+  panelState[panel].provider = p;
+  const selId = panel === 'a' ? 'pa-model' : 'pb-model';
+  buildModelDropdown(selId, p);
+  panelState[panel].model = MODELS[p][0].models[0];
+}
+
+// ═══════════════════════════════════════════════════════
+//  SLIDERS
+// ═══════════════════════════════════════════════════════
+function syncSlider(which, val) {
+  const v = parseFloat(val);
+  if (which === 'temp') { state.temperature = v; document.getElementById('val-temp').textContent = v.toFixed(2); }
+  if (which === 'topp') { state.topP = v; document.getElementById('val-topp').textContent = v.toFixed(2); }
+}
+
+// ═══════════════════════════════════════════════════════
+//  OUTPUT MODE
+// ═══════════════════════════════════════════════════════
+function setMode(m) {
+  state.mode = m;
+  ['text','json','structured','streaming','tool'].forEach(id => {
+    const btn = document.getElementById('mode-' + id);
+    btn.style.color = id === m ? 'var(--accent)' : '';
+  });
+  const schemaVisible = m === 'structured' || m === 'tool';
+  document.getElementById('schema-area-a').classList.toggle('visible', schemaVisible);
+  document.getElementById('schema-area-b').classList.toggle('visible', schemaVisible);
+}
+
+// ═══════════════════════════════════════════════════════
+//  SCHEMA VALIDATION
+// ═══════════════════════════════════════════════════════
+function validateSchema(panel) {
+  const val = document.getElementById('schema-' + panel).value.trim();
+  const el = document.getElementById('schema-status-' + panel);
+  if (!val) { el.textContent = ''; return true; }
+  try { JSON.parse(val); el.textContent = '✓ Valid JSON'; el.className = 'schema-status ok'; return true; }
+  catch(e) { el.textContent = '✗ ' + e.message; el.className = 'schema-status err'; return false; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROMPT INPUT
+// ═══════════════════════════════════════════════════════
+function onPromptInput(panel) {
+  const val = document.getElementById('prompt-' + panel).value;
+  document.getElementById('est-' + panel).textContent = '~' + Math.ceil(val.length / 4) + ' tokens';
+  if (panel === 'a' && state.syncPrompt && state.compareMode) {
+    document.getElementById('prompt-b').value = val;
+    document.getElementById('est-b').textContent = document.getElementById('est-' + panel).textContent;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  API KEY MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function onManualKey(provider, val) {
+  if (val.length > 8) { keys[provider] = val; updateKeyUI(provider); }
+}
+function updateKeyUI(provider) {
+  const k = keys[provider];
+  const dot = document.getElementById('dot-' + provider);
+  const preview = document.getElementById('preview-' + provider);
+  if (k && k.length > 8) {
+    dot.classList.add('ok');
+    preview.textContent = k.slice(0,6) + '••••••••••••••••' + k.slice(-3);
+  } else {
+    dot.classList.remove('ok');
+    preview.textContent = 'Not loaded';
+  }
+}
+
+// .env parser
+function parseEnv(text) {
+  const result = {};
+  text.split('\n').filter(l => l.includes('=')).forEach(l => {
+    const idx = l.indexOf('=');
+    const k = l.slice(0, idx).trim();
+    const v = l.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+    if (k === 'ANTHROPIC_API_KEY') result.anthropic = v;
+    if (k === 'OPENAI_API_KEY') result.openai = v;
+  });
+  return result;
+}
+// CSV parser
+function parseCsv(text) {
+  const result = {};
+  text.split('\n').slice(1).forEach(l => {
+    const parts = l.split(',').map(s => s.trim());
+    if (parts.length >= 2 && parts[0] && parts[1]) result[parts[0].toLowerCase()] = parts[1];
+  });
+  return result;
+}
+function applyKeys(parsed) {
+  Object.entries(parsed).forEach(([p, k]) => { if (k) { keys[p] = k; updateKeyUI(p); } });
+  showToast('Keys loaded ✓', 'info');
+}
+
+function onFileChange(e) { readFile(e.target.files[0]); }
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+  readFile(e.dataTransfer.files[0]);
+}
+function readFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    const parsed = file.name.endsWith('.csv') ? parseCsv(text) : parseEnv(text);
+    applyKeys(parsed);
+  };
+  reader.readAsText(file);
+}
+
+// ═══════════════════════════════════════════════════════
+//  EXAMPLE PROMPTS
+// ═══════════════════════════════════════════════════════
+function buildExamples() {
+  const container = document.getElementById('examples-list');
+  container.innerHTML = '';
+  EXAMPLES.forEach(cat => {
+    const div = document.createElement('div');
+    div.className = 'preset-category';
+    div.innerHTML = `<div class="preset-category-label">${cat.category}</div>`;
+    cat.items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'preset-item';
+      btn.textContent = item.label;
+      btn.onclick = () => applyPreset(item);
+      div.appendChild(btn);
+    });
+    container.appendChild(div);
+  });
+}
+function applyPreset(item) {
+  document.getElementById('prompt-a').value = item.prompt;
+  document.getElementById('est-a').textContent = '~' + Math.ceil(item.prompt.length / 4) + ' tokens';
+  if (item.mode) setMode(item.mode);
+  if (item.schema) {
+    document.getElementById('schema-a').value = item.schema;
+    validateSchema('a');
+  }
+  if (state.syncPrompt && state.compareMode) {
+    document.getElementById('prompt-b').value = item.prompt;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  COMPARE MODE
+// ═══════════════════════════════════════════════════════
+function toggleCompare() {
+  state.compareMode = !state.compareMode;
+  document.getElementById('btn-compare-toggle').classList.toggle('active', state.compareMode);
+  document.getElementById('panel-b').style.display = state.compareMode ? 'flex' : 'none';
+  document.getElementById('panel-a-header').style.display = state.compareMode ? 'flex' : 'none';
+  document.getElementById('compare-summary').classList.toggle('visible', false);
+  if (state.compareMode) {
+    document.getElementById('pa-provider').value = panelState.a.provider;
+    buildModelDropdown('pa-model', panelState.a.provider);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SEND / STOP
+// ═══════════════════════════════════════════════════════
+function clearPanel(panel) {
+  document.getElementById('output-' + panel).innerHTML = '<span class="placeholder">Response will appear here...</span>';
+  resetMetrics(panel);
+}
+function copyResponse(panel) {
+  const text = document.getElementById('output-' + panel).innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('Copied!', 'info'));
+}
+function stopRequest(panel) {
+  if (panelState[panel].abortCtrl) { panelState[panel].abortCtrl.abort(); }
+}
+
+async function sendBoth() {
+  await Promise.all([sendRequest('a'), sendRequest('b')]);
+  showCompareSummary();
+}
+
+function showCompareSummary() {
+  const ma = panelState.a.metrics, mb = panelState.b.metrics;
+  if (!ma.total && !mb.total) return;
+  const pa = panelState.a.provider, pb = panelState.b.provider;
+  const modA = panelState.a.model, modB = panelState.b.model;
+
+  const fasterLatency = (ma.total || Infinity) <= (mb.total || Infinity) ? 'a' : 'b';
+  const cheaperCost   = (ma.cost  || Infinity) <= (mb.cost  || Infinity) ? 'a' : 'b';
+
+  const fmt = (v, unit='') => v != null ? v + unit : '—';
+  const rows = [
+    ['Latency (ms)', fmt(ma.total), fmt(mb.total), fasterLatency],
+    ['Prompt Tok',   fmt(ma.promptTok), fmt(mb.promptTok), null],
+    ['Comp Tok',     fmt(ma.compTok), fmt(mb.compTok), null],
+    ['Cost (USD)',   ma.cost != null ? '$'+ma.cost.toFixed(6) : '—', mb.cost != null ? '$'+mb.cost.toFixed(6) : '—', cheaperCost],
+    ['Tok/s',        fmt(ma.tps?.toFixed(1)), fmt(mb.tps?.toFixed(1)), (ma.tps||0) >= (mb.tps||0) ? 'a' : 'b'],
+  ];
+
+  const grid = document.getElementById('compare-grid');
+  grid.innerHTML = `
+    <div class="compare-cell header"></div>
+    <div class="compare-cell header">A · ${modA}</div>
+    <div class="compare-cell header">B · ${modB}</div>
+    ${rows.map(([label, va, vb, winner]) => `
+      <div class="compare-cell label">${label}</div>
+      <div class="compare-cell ${winner === 'a' ? 'winner' : ''}">${va}${winner === 'a' ? ' 🏆' : ''}</div>
+      <div class="compare-cell ${winner === 'b' ? 'winner' : ''}">${vb}${winner === 'b' ? ' 🏆' : ''}</div>
+    `).join('')}
+  `;
+  document.getElementById('compare-summary').classList.add('visible');
+}
+
+function resetMetrics(panel) {
+  ['ttfb','total','ptok','ctok','tps','cost','model'].forEach(k => {
+    const el = document.getElementById('m-' + k + '-' + panel);
+    if (el) el.textContent = '—';
+  });
+  panelState[panel].metrics = {};
+}
+
+function setMetrics(panel, m) {
+  panelState[panel].metrics = m;
+  if (m.ttfb != null) document.getElementById('m-ttfb-'+panel).textContent = m.ttfb + 'ms';
+  if (m.total != null) document.getElementById('m-total-'+panel).textContent = m.total + 'ms';
+  if (m.promptTok != null) document.getElementById('m-ptok-'+panel).textContent = m.promptTok;
+  if (m.compTok != null) document.getElementById('m-ctok-'+panel).textContent = m.compTok;
+  if (m.tps != null) document.getElementById('m-tps-'+panel).textContent = m.tps.toFixed(1);
+  if (m.cost != null) document.getElementById('m-cost-'+panel).textContent = '$' + m.cost.toFixed(6);
+  if (m.model) document.getElementById('m-model-'+panel).textContent = m.model;
+}
+
+async function sendRequest(panel) {
+  const ps = panelState[panel];
+  const provider = state.compareMode ? ps.provider : state.provider;
+  const model = state.compareMode
+    ? document.getElementById(panel === 'a' ? 'pa-model' : 'pb-model').value
+    : document.getElementById('model-select').value;
+  ps.model = model;
+
+  const prompt = document.getElementById('prompt-' + panel).value.trim();
+  if (!prompt) { showToast('Enter a prompt first.', 'warn'); return; }
+  if (!keys[provider]) { showToast('No API key for ' + provider + '. Load a .env or .csv file.', 'error'); return; }
+
+  const schemaVisible = state.mode === 'structured' || state.mode === 'tool';
+  if (schemaVisible && !validateSchema(panel)) { showToast('Fix the schema errors first.', 'warn'); return; }
+
+  const schemaText = document.getElementById('schema-' + panel).value.trim();
+  let schemaParsed = null;
+  if (schemaText) { try { schemaParsed = JSON.parse(schemaText); } catch(e) {} }
+
+  const out = document.getElementById('output-' + panel);
+  out.innerHTML = '<span style="color:var(--text-dim)">Waiting for response...</span>';
+  resetMetrics(panel);
+
+  const btnSend = document.getElementById('btn-send-' + panel);
+  const btnStop = document.getElementById('btn-stop-' + panel);
+  if (btnSend) btnSend.disabled = true;
+  if (btnStop) btnStop.style.display = '';
+
+  const ctrl = new AbortController();
+  ps.abortCtrl = ctrl;
+
+  const t0 = Date.now();
+  let ttfb = null, fullText = '', stopped = false;
+
+  try {
+    if (provider === 'anthropic') {
+      await callAnthropic(panel, model, prompt, schemaParsed, ctrl, t0,
+        (chunk) => {
+          if (ttfb === null) { ttfb = Date.now() - t0; }
+          fullText += chunk;
+          renderOutput(panel, fullText, false);
+        },
+        (usage) => {
+          const total = Date.now() - t0;
+          const compTok = usage?.output_tokens || 0;
+          const promptTok = usage?.input_tokens || 0;
+          const cost = calcCost(model, promptTok, compTok);
+          const tps = compTok / (total / 1000);
+          setMetrics(panel, { ttfb, total, promptTok, compTok, tps, cost, model });
+          appendHistory(panel, provider, model, prompt, fullText, { ttfb, total, promptTok, compTok, tps, cost });
+        },
+        (err) => { out.innerHTML = '<span class="error-msg">' + escHtml(err) + '</span>'; }
+      );
+    } else {
+      await callOpenAI(panel, model, prompt, schemaParsed, ctrl, t0,
+        (chunk) => {
+          if (ttfb === null) { ttfb = Date.now() - t0; }
+          fullText += chunk;
+          renderOutput(panel, fullText, false);
+        },
+        (usage) => {
+          const total = Date.now() - t0;
+          const compTok = usage?.completion_tokens || 0;
+          const promptTok = usage?.prompt_tokens || 0;
+          const cost = calcCost(model, promptTok, compTok);
+          const tps = compTok / (total / 1000);
+          setMetrics(panel, { ttfb, total, promptTok, compTok, tps, cost, model });
+          appendHistory(panel, provider, model, prompt, fullText, { ttfb, total, promptTok, compTok, tps, cost });
+        },
+        (err) => { out.innerHTML = '<span class="error-msg">' + escHtml(err) + '</span>'; }
+      );
+    }
+  } catch(e) {
+    if (e.name === 'AbortError') {
+      fullText += '\n[Stopped by user]';
+      renderOutput(panel, fullText, false);
+    } else {
+      out.innerHTML = '<span class="error-msg">Network error: ' + escHtml(e.message) + '</span>';
+    }
+  } finally {
+    if (btnSend) btnSend.disabled = false;
+    if (btnStop) btnStop.style.display = 'none';
+    ps.abortCtrl = null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER OUTPUT
+// ═══════════════════════════════════════════════════════
+function renderOutput(panel, text, final) {
+  const out = document.getElementById('output-' + panel);
+  if (state.mode === 'json' || state.mode === 'structured') {
+    try {
+      const parsed = JSON.parse(text);
+      const pretty = JSON.stringify(parsed, null, 2);
+      out.innerHTML = '<pre><code class="language-json">' + escHtml(pretty) + '</code></pre>';
+      if (typeof hljs !== 'undefined') hljs.highlightAll();
+      return;
+    } catch(e) { /* fall through to plain */ }
+  }
+  out.textContent = text;
+}
+
+// ═══════════════════════════════════════════════════════
+//  ANTHROPIC API
+// ═══════════════════════════════════════════════════════
+async function callAnthropic(panel, model, prompt, schema, ctrl, t0, onChunk, onDone, onError) {
+  const body = {
+    model,
+    max_tokens: state.maxTokens,
+    system: state.systemPrompt,
+    messages: [{ role: 'user', content: prompt }],
+    stream: state.mode === 'streaming' || true,
+    temperature: state.temperature,
+  };
+  if (state.mode === 'tool' && schema) {
+    body.tools = [schema];
+    body.stream = true;
+  }
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': keys.anthropic,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
+    signal: ctrl.signal,
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: { message: resp.statusText } }));
+    const msg = err?.error?.message || resp.statusText;
+    if (resp.status === 401) onError('Auth failed (401). Check your Anthropic API key.');
+    else if (resp.status === 429) showToast('Rate limited by Anthropic. Wait a moment.', 'warn');
+    else onError('Anthropic error ' + resp.status + ': ' + msg);
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let usage = null, buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') continue;
+      try {
+        const ev = JSON.parse(data);
+        if (ev.type === 'content_block_delta' && ev.delta?.text) onChunk(ev.delta.text);
+        if (ev.type === 'message_delta' && ev.usage) usage = ev.usage;
+        if (ev.type === 'message_start' && ev.message?.usage) usage = { ...usage, ...ev.message.usage };
+        if (ev.type === 'tool_use') {
+          onChunk('\n[Tool call: ' + ev.name + ']\n' + JSON.stringify(ev.input, null, 2));
+        }
+        if (ev.type === 'content_block_start' && ev.content_block?.type === 'tool_use') {
+          onChunk('\n[Tool: ' + ev.content_block.name + '] ');
+        }
+      } catch(e) {}
+    }
+  }
+  onDone(usage);
+}
+
+// ═══════════════════════════════════════════════════════
+//  OPENAI API
+// ═══════════════════════════════════════════════════════
+async function callOpenAI(panel, model, prompt, schema, ctrl, t0, onChunk, onDone, onError) {
+  const body = {
+    model,
+    messages: [
+      { role: 'system', content: state.systemPrompt },
+      { role: 'user', content: prompt }
+    ],
+    max_tokens: state.maxTokens,
+    temperature: state.temperature,
+    top_p: state.topP,
+    stream: true,
+    stream_options: { include_usage: true },
+  };
+
+  if (state.mode === 'json') body.response_format = { type: 'json_object' };
+  if (state.mode === 'structured' && schema) {
+    body.response_format = { type: 'json_schema', json_schema: { name: 'response', schema } };
+  }
+  if (state.mode === 'tool' && schema) {
+    body.tools = [{ type: 'function', function: schema }];
+    body.tool_choice = 'auto';
+  }
+
+  const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + keys.openai,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+    signal: ctrl.signal,
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: { message: resp.statusText } }));
+    const msg = err?.error?.message || resp.statusText;
+    if (resp.status === 401) onError('Auth failed (401). Check your OpenAI API key.');
+    else if (resp.status === 429) showToast('Rate limited by OpenAI. Wait a moment.', 'warn');
+    else onError('OpenAI error ' + resp.status + ': ' + msg);
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let usage = null, buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') continue;
+      try {
+        const ev = JSON.parse(data);
+        if (ev.usage) usage = ev.usage;
+        const delta = ev.choices?.[0]?.delta;
+        if (delta?.content) onChunk(delta.content);
+        if (delta?.tool_calls) {
+          delta.tool_calls.forEach(tc => {
+            if (tc.function?.name) onChunk('\n[Tool: ' + tc.function.name + '] ');
+            if (tc.function?.arguments) onChunk(tc.function.arguments);
+          });
+        }
+      } catch(e) {}
+    }
+  }
+  onDone(usage);
+}
+
+// ═══════════════════════════════════════════════════════
+//  COST CALC
+// ═══════════════════════════════════════════════════════
+function calcCost(model, promptTok, compTok) {
+  const p = PRICES[model];
+  if (!p) return null;
+  return (promptTok / 1e6) * p[0] + (compTok / 1e6) * p[1];
+}
+
+// ═══════════════════════════════════════════════════════
+//  HISTORY
+// ═══════════════════════════════════════════════════════
+function appendHistory(panel, provider, model, prompt, response, metrics) {
+  const entry = {
+    ts: new Date().toLocaleTimeString(),
+    provider, model,
+    prompt: prompt.slice(0, 80) + (prompt.length > 80 ? '…' : ''),
+    response,
+    ...metrics,
+  };
+  history.unshift(entry);
+  renderHistory();
+}
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!history.length) { el.innerHTML = '<p class="history-empty">No requests yet.</p>'; return; }
+  el.innerHTML = `<table class="history-table">
+    <thead><tr><th>Time</th><th>Model</th><th>Tok</th><th>Cost</th></tr></thead>
+    <tbody>${history.slice(0,20).map((h, i) => `
+      <tr onclick="loadHistory(${i})" title="${escHtml(h.prompt)}">
+        <td>${h.ts}</td>
+        <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${h.model}</td>
+        <td>${(h.promptTok||0)+(h.compTok||0)}</td>
+        <td>${h.cost != null ? '$'+h.cost.toFixed(5) : '—'}</td>
+      </tr>`).join('')}</tbody>
+  </table>`;
+}
+function loadHistory(idx) {
+  const h = history[idx];
+  document.getElementById('prompt-a').value = h.prompt;
+  document.getElementById('output-a').textContent = h.response;
+  setMetrics('a', h);
+}
+function exportHistoryCsv() {
+  if (!history.length) { showToast('No history to export.', 'warn'); return; }
+  const headers = ['time','provider','model','promptTok','compTok','cost','ttfb','total','prompt'];
+  const rows = history.map(h => headers.map(k => JSON.stringify(h[k] ?? '')).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'llm-history.csv';
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════
+function showToast(msg, type = 'info') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTIL
+// ═══════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
