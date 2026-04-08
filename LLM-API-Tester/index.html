@@ -300,8 +300,13 @@ a:hover { text-decoration: underline; }
           <span>API Keys</span><span class="chevron">▶</span>
         </div>
         <div class="sidebar-section-body open" id="section-keys">
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+               ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <input type="file" id="file-input" accept="*/*" onchange="onFileChange(event)">
+            Drop <code>.env</code> or <code>.csv</code> · or click to browse
+          </div>
           <div class="field">
-            <label>Paste .env contents</label>
+            <label>Or paste .env contents</label>
             <textarea id="env-paste" rows="3" placeholder="ANTHROPIC_API_KEY=sk-ant-...&#10;OPENAI_API_KEY=sk-..." style="width:100%;padding:5px 8px;font-family:var(--font-mono);font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:2px;resize:vertical;" oninput="onEnvPaste(this.value)"></textarea>
           </div>
           <div class="field">
