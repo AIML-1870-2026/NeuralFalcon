@@ -392,10 +392,10 @@ a:hover { text-decoration: underline; }
 
       <!-- Example Prompts -->
       <div class="sidebar-section">
-        <div class="sidebar-section-header" onclick="toggleSection(this)">
+        <div class="sidebar-section-header open" onclick="toggleSection(this)">
           <span>Example Prompts</span><span class="chevron">▶</span>
         </div>
-        <div class="sidebar-section-body" id="section-examples">
+        <div class="sidebar-section-body open" id="section-examples">
           <div id="examples-list"></div>
         </div>
       </div>
@@ -668,6 +668,7 @@ function init() {
   document.getElementById('pb-model').value = 'gpt-4o';
   panelState.b.model = 'gpt-4o';
   buildExamples();
+  applyPreset(EXAMPLES[0].items[0]); // pre-load first example
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); state.compareMode ? sendBoth() : sendRequest('a'); }
     if (e.key === 'Escape') { stopRequest('a'); stopRequest('b'); }
