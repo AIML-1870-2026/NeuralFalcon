@@ -300,10 +300,9 @@ a:hover { text-decoration: underline; }
           <span>API Keys</span><span class="chevron">▶</span>
         </div>
         <div class="sidebar-section-body open" id="section-keys">
-          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
-               ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-            <input type="file" id="file-input" accept=".env,.csv,text/plain,*/*" onchange="onFileChange(event)">
-            Drop <code>.env</code> or <code>.csv</code><br>or click to browse<br><span style="font-size:10px;color:var(--text-dim)">(Cmd+Shift+. to show hidden files)</span>
+          <div class="field">
+            <label>Paste .env contents</label>
+            <textarea id="env-paste" rows="3" placeholder="ANTHROPIC_API_KEY=sk-ant-...&#10;OPENAI_API_KEY=sk-..." style="width:100%;padding:5px 8px;font-family:var(--font-mono);font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:2px;resize:vertical;" oninput="onEnvPaste(this.value)"></textarea>
           </div>
           <div class="field">
             <label>Anthropic Key</label>
@@ -776,6 +775,10 @@ function onPromptInput(panel) {
 // ═══════════════════════════════════════════════════════
 //  API KEY MANAGEMENT
 // ═══════════════════════════════════════════════════════
+function onEnvPaste(text) {
+  const parsed = parseEnv(text);
+  if (Object.keys(parsed).length) applyKeys(parsed);
+}
 function onManualKey(provider, val) {
   if (val.length > 8) { keys[provider] = val; updateKeyUI(provider); }
 }
