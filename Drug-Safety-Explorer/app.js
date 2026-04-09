@@ -20,13 +20,17 @@ const POPUP_CONTENT = {
       <h4>How is it collected?</h4>
       <p>Anyone can submit a report to FDA MedWatch online or by phone. Healthcare professionals and manufacturers are legally required to report serious events; patients can report voluntarily.</p>
       <h4>What the color rating means</h4>
-      <p><strong style="color:#C0392B">■ High</strong> — reaction appears in the top 30% of reports for this drug.<br>
+      <p><strong style="color:#C0392B">■ High</strong> — reaction appears in the top 50% of reports for this drug.<br>
          <strong style="color:#E67E22">■ Moderate</strong> — middle range of reported reactions.<br>
          <strong style="color:#7F8C8D">■ Low</strong> — reported less frequently relative to other reactions.</p>
+      <h4>Why are popular drugs' numbers so high?</h4>
+      <p>A drug taken by 50 million people will have far more FAERS reports than one taken by 50,000 — even if the rarer drug is actually more dangerous. <strong>Never compare raw counts between two drugs directly.</strong> Use this tool to understand the <em>pattern</em> of reactions for each drug, not to rank safety.</p>
       <h4>What it can tell you</h4>
-      <p>Which reactions have been reported alongside this drug, and how often. Higher counts suggest the reaction is more commonly noted — not necessarily more dangerous.</p>
+      <p>Which types of reactions appear most often in reports for this drug. The bar chart shows relative frequency — useful for spotting which body systems are most affected.</p>
       <h4>What it cannot tell you</h4>
       <p>A report is <em>not</em> proof the drug caused the reaction. The same patient may have had other conditions or medications. Under-reporting is common — most real-world events are never submitted to FAERS.</p>
+      <h4>Tip: the table is sortable</h4>
+      <p>Click the <strong>Reaction</strong> or <strong>Reports</strong> column header to sort alphabetically or by count.</p>
     `
   },
   label: {
@@ -57,7 +61,13 @@ const POPUP_CONTENT = {
       <h4>What it can tell you</h4>
       <p>Whether a specific brand or formulation of this drug has been recalled, why, and how serious the concern was.</p>
       <h4>What it cannot tell you</h4>
-      <p>Recalls are almost always for specific lots or manufacturing runs — not the entire drug. A recalled product does not mean the drug itself is unsafe. Always check the lot number against the FDA recall notice.</p>
+      <p>Recalls apply to <em>specific lots or manufacturing runs</em> — not the entire drug. Seeing a recall does not mean the drug is inherently unsafe or that your current supply is affected.</p>
+      <h4>What to do if you see a recall</h4>
+      <ol style="padding-left:1.2em;margin-top:4px;">
+        <li>Check the lot number on your bottle against the specific recall notice on <a href="https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts" target="_blank" rel="noopener">fda.gov/recalls</a>.</li>
+        <li>If your lot is affected, stop using the product and contact your pharmacist.</li>
+        <li>Do <strong>not</strong> stop a critical medication without consulting your healthcare provider first.</li>
+      </ol>
     `
   },
   'co-events': {
@@ -73,6 +83,38 @@ const POPUP_CONTENT = {
       <p>Which reactions have been most commonly reported when patients were taking both drugs together. This can highlight potential interaction signals worth discussing with a healthcare provider.</p>
       <h4>Important limitations</h4>
       <p>This is <em>not</em> a formal drug interaction database. Co-occurrence in a report does not mean the two drugs caused the reaction together. The patient may have had underlying conditions, other medications, or the reaction may have been unrelated to either drug. Always consult a pharmacist or physician about drug combinations.</p>
+    `
+  },
+  'search-tips': {
+    title: 'Search Tips',
+    body: `
+      <h4>Use generic names, not brand names</h4>
+      <p>The FDA database indexes drugs by their <strong>generic (active ingredient) name</strong>, not the brand name. For best results:</p>
+      <ul style="padding-left:1.2em;margin-top:4px;">
+        <li>Use <strong>ibuprofen</strong> instead of Advil or Motrin</li>
+        <li>Use <strong>atorvastatin</strong> instead of Lipitor</li>
+        <li>Use <strong>sertraline</strong> instead of Zoloft</li>
+        <li>Use <strong>metformin</strong> instead of Glucophage</li>
+      </ul>
+      <h4>Autocomplete suggestions</h4>
+      <p>Start typing — the search field will suggest correct spellings from the RxNorm drug database after 4 characters. Use the arrow keys to navigate and Enter to select.</p>
+      <h4>If you get no results</h4>
+      <p>Try the generic name, check spelling, or search a simpler form (e.g. "acetaminophen" instead of "acetaminophen 500mg"). Some drugs have limited FDA reporting data.</p>
+      <h4>Comparing similar drugs</h4>
+      <p>This tool works best for comparing drugs in the same class — e.g. two NSAIDs (ibuprofen vs naproxen), two statins (atorvastatin vs simvastatin), or two antidepressants. The side-by-side view makes differences in reported reactions easy to spot.</p>
+    `
+  },
+  'report-count': {
+    title: 'How to Interpret Report Counts',
+    body: `
+      <h4>More reports ≠ more dangerous</h4>
+      <p>A drug taken by tens of millions of people (like ibuprofen) will always accumulate more FAERS reports than a drug with a small patient population — even if the common drug is actually safer. <strong>Raw counts are not a measure of danger.</strong></p>
+      <h4>What to look at instead</h4>
+      <p>Focus on the <em>types</em> of reactions reported and how they distribute across body systems. A drug with 500,000 reports mostly about headache is a different picture than one with 10,000 reports mostly about liver failure.</p>
+      <h4>The "High / Moderate / Low" rating</h4>
+      <p>These ratings compare reactions <em>within the same drug</em> — they tell you which reactions are most commonly reported relative to each other for that drug. They do not compare across drugs.</p>
+      <h4>Under-reporting</h4>
+      <p>Studies suggest fewer than 10% of adverse events are ever reported to FAERS. The database captures signals, not complete statistics. A reaction not appearing here does not mean it cannot happen.</p>
     `
   },
   'label-warnings': {
@@ -320,6 +362,7 @@ function renderEvents(side, results, drug) {
     <div class="interpret-box">
       <strong>${total.toLocaleString()}</strong> adverse event reports found.
       Most frequently reported: <strong>${escHtml(top.name)}</strong> (${top.count.toLocaleString()} reports).
+      <button class="interpret-help" onclick="showPopup('report-count')">Why is this number so high?</button>
       <button class="interpret-help" onclick="showPopup('events')">What does this mean?</button>
     </div>
     <div class="rating-legend">
@@ -590,7 +633,7 @@ function renderCoEvents(drugA, drugB, results) {
 function setIxHtml(drugA, drugB, bodyHtml) {
   ixSection.innerHTML = `
     <div class="ix-header">
-      <span>Co-reported Adverse Events</span>
+      <span>Co-reported Adverse Events <button class="inline-help" onclick="showPopup('co-events')" title="What is this?">?</button></span>
       <span class="ix-drugs">${escHtml(drugA)} &amp; ${escHtml(drugB)}</span>
     </div>
     <div class="ix-body">${bodyHtml}</div>`;
