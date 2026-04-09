@@ -405,6 +405,17 @@ a:hover { text-decoration: underline; }
         </div>
       </div>
 
+      <!-- Prompt Library -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header" onclick="toggleSection(this)">
+          <span>Prompt Library</span><span class="chevron">▶</span>
+        </div>
+        <div class="sidebar-section-body" id="section-library">
+          <button class="btn btn-ghost" style="width:100%;font-size:11px;margin-bottom:8px;" onclick="savePrompt()">+ Save Current Prompt</button>
+          <div id="library-list"><p class="history-empty">No saved prompts.</p></div>
+        </div>
+      </div>
+
       <!-- Request History -->
       <div class="sidebar-section">
         <div class="sidebar-section-header" onclick="toggleSection(this)">
@@ -456,6 +467,8 @@ a:hover { text-decoration: underline; }
           </div>
           <!-- Output -->
           <div class="output-pane" id="output-a"><span class="placeholder">Response will appear here...</span></div>
+          <!-- JSON Validator -->
+          <div id="validator-a" style="display:none;padding:6px 12px;background:var(--panel);border-top:1px solid var(--border);font-size:11px;font-family:var(--font-mono);"></div>
           <!-- Metrics -->
           <div class="metrics-bar" id="metrics-a">
             <div class="metric"><span class="m-label">TTFB</span><span class="m-value" id="m-ttfb-a">—</span></div>
@@ -674,6 +687,7 @@ function init() {
   panelState.b.model = 'gpt-4o';
   buildExamples();
   applyPreset(EXAMPLES[0].items[0]); // pre-load first example
+  renderLibrary();
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); state.compareMode ? sendBoth() : sendRequest('a'); }
     if (e.key === 'Escape') { stopRequest('a'); stopRequest('b'); }
@@ -1061,10 +1075,12 @@ function renderOutput(panel, text, final) {
       const pretty = JSON.stringify(parsed, null, 2);
       out.innerHTML = '<pre><code class="language-json">' + escHtml(pretty) + '</code></pre>';
       if (typeof hljs !== 'undefined') hljs.highlightAll();
+      validateOutput(panel, text);
       return;
     } catch(e) { /* fall through to plain */ }
   }
   out.textContent = text;
+  validateOutput(panel, text);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1275,6 +1291,134 @@ function showToast(msg, type = 'info') {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3500);
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROMPT LIBRARY (localStorage)
+// ═══════════════════════════════════════════════════════
+function loadLibrary() {
+  try { return JSON.parse(localStorage.getItem('llm-prompt-library') || '[]'); } catch(e) { return []; }
+}
+function saveLibrary(lib) {
+  localStorage.setItem('llm-prompt-library', JSON.stringify(lib));
+}
+function savePrompt() {
+  const prompt = document.getElementById('prompt-a').value.trim();
+  if (!prompt) { showToast('No prompt to save.', 'warn'); return; }
+  const name = window.prompt('Name this prompt:', prompt.slice(0, 40) + (prompt.length > 40 ? '…' : ''));
+  if (!name) return;
+  const lib = loadLibrary();
+  lib.unshift({ id: Date.now(), name, prompt, schema: document.getElementById('schema-a').value, mode: state.mode });
+  saveLibrary(lib);
+  renderLibrary();
+  showToast('Prompt saved!', 'info');
+}
+function deletePrompt(id) {
+  saveLibrary(loadLibrary().filter(p => p.id !== id));
+  renderLibrary();
+}
+function renderLibrary() {
+  const el = document.getElementById('library-list');
+  const lib = loadLibrary();
+  if (!lib.length) { el.innerHTML = '<p class="history-empty">No saved prompts.</p>'; return; }
+  el.innerHTML = lib.map(p => `
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
+      <button class="preset-item" style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="loadPrompt(${p.id})" title="${escHtml(p.prompt)}">${escHtml(p.name)}</button>
+      <button class="btn-icon" style="color:var(--red);font-size:12px;flex-shrink:0;" onclick="deletePrompt(${p.id})" title="Delete">✕</button>
+    </div>`).join('');
+}
+function loadPrompt(id) {
+  const p = loadLibrary().find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('prompt-a').value = p.prompt;
+  onPromptInput('a');
+  if (p.schema) { document.getElementById('schema-a').value = p.schema; validateSchema('a'); }
+  if (p.mode) setMode(p.mode);
+}
+
+// ═══════════════════════════════════════════════════════
+//  JSON OUTPUT VALIDATOR
+// ═══════════════════════════════════════════════════════
+function validateOutput(panel, text) {
+  const el = document.getElementById('validator-' + panel);
+  if (!el) return;
+  const schema = document.getElementById('schema-' + panel)?.value.trim();
+
+  // Only run if we have JSON-ish output
+  const trimmed = text.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) { el.style.display = 'none'; return; }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch(e) {
+    el.style.display = '';
+    el.innerHTML = `<span style="color:var(--red)">✗ Invalid JSON: ${escHtml(e.message)}</span>`;
+    return;
+  }
+
+  // Valid JSON — show structure summary
+  if (!schema) {
+    const keys = typeof parsed === 'object' && !Array.isArray(parsed) ? Object.keys(parsed) : null;
+    el.style.display = '';
+    el.innerHTML = `<span style="color:var(--green)">✓ Valid JSON</span>` +
+      (keys ? `<span style="color:var(--text-dim);margin-left:8px;">keys: ${keys.map(k=>`<kbd style="background:var(--bg);border:1px solid var(--border);padding:1px 4px;border-radius:2px;">${escHtml(k)}</kbd>`).join(' ')}</span>` : ` · Array[${parsed.length}]`);
+    return;
+  }
+
+  // Schema-based validation (simple required fields check)
+  let schemaParsed;
+  try { schemaParsed = JSON.parse(schema); } catch(e) { el.style.display = 'none'; return; }
+
+  const errors = checkSchema(parsed, schemaParsed, '');
+  el.style.display = '';
+  if (!errors.length) {
+    el.innerHTML = `<span style="color:var(--green)">✓ Response matches schema</span>`;
+  } else {
+    el.innerHTML = `<span style="color:var(--orange)">⚠ Schema mismatch:</span> ` +
+      errors.map(e => `<span style="color:var(--text-dim);margin-left:6px;">• ${escHtml(e)}</span>`).join('');
+  }
+}
+
+function checkSchema(data, schema, path) {
+  const errors = [];
+  if (!schema || typeof schema !== 'object') return errors;
+
+  // Check type
+  if (schema.type) {
+    const jsType = Array.isArray(data) ? 'array' : typeof data;
+    const schType = schema.type;
+    if (schType === 'integer' && !Number.isInteger(data)) errors.push(`${path||'root'}: expected integer, got ${jsType}`);
+    else if (schType !== 'integer' && jsType !== schType) errors.push(`${path||'root'}: expected ${schType}, got ${jsType}`);
+  }
+
+  // Check required properties
+  if (schema.required && typeof data === 'object' && !Array.isArray(data)) {
+    schema.required.forEach(req => {
+      if (!(req in data)) errors.push(`missing required field: "${path ? path+'.' : ''}${req}"`);
+    });
+  }
+
+  // Check enum
+  if (schema.enum && !schema.enum.includes(data)) {
+    errors.push(`${path||'root'}: must be one of [${schema.enum.join(', ')}], got "${data}"`);
+  }
+
+  // Recurse into array items
+  if (schema.type === 'array' && schema.items && Array.isArray(data)) {
+    data.slice(0,3).forEach((item, i) => {
+      errors.push(...checkSchema(item, schema.items, `[${i}]`));
+    });
+  }
+
+  // Recurse into object properties
+  if (schema.properties && typeof data === 'object' && !Array.isArray(data)) {
+    Object.entries(schema.properties).forEach(([key, subSchema]) => {
+      if (key in data) errors.push(...checkSchema(data[key], subSchema, path ? path+'.'+key : key));
+    });
+  }
+
+  return errors;
 }
 
 // ═══════════════════════════════════════════════════════
