@@ -63,6 +63,18 @@ When I say "Show my URLs" or "Where's my stuff?":
 - Use descriptive folder names (e.g., "Julia-Set-Explorer" not "assignment3")
 - **Always consider color theory when designing UIs and visuals.** Choose complementary, analogous, or triadic color schemes. Ensure good contrast, visual harmony, and accessibility (WCAG contrast ratios).
 
+## Pre-Ship Safety Check
+Before writing any code, ask: **how will this look to a browser, scanner, or hosting platform?**
+
+Things that can get a GitHub Pages project flagged, blocked, or broken:
+- **Forms that look like phishing** — `type="password"` + credential labels, real brand names near input fields, login-style layouts. Use `type="text"` for API keys/tokens and developer-tool language ("Paste .env contents", "OpenAI Configuration").
+- **Mixed content** — loading `http://` resources from an `https://` GitHub Pages site. Always use `https://` CDN links.
+- **Hardcoded secrets** — never put real API keys, tokens, or credentials in committed files.
+- **Overly broad `fetch()` calls** — hitting non-CORS endpoints will silently fail in browsers. Check that external APIs support CORS before building around them.
+- **Inline event handlers that look suspicious** — extremely long `onclick` strings or obfuscated JS can trip content security scanners.
+
+When in doubt, read the code as if you were a security scanner, not a developer.
+
 ## File Naming
 - Main file: `index.html`
 - Assets: lowercase, hyphens (e.g., `particle-system.js`)

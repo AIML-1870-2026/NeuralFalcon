@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Review Generator</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Product Review Generator</h1>
+    <p>Generate polished product reviews with OpenAI</p>
+  </header>
+
+  <!-- API Key -->
+  <div class="card" id="keyCard">
+    <div class="card-title">OpenAI Configuration</div>
+    <div class="key-row">
+      <input type="text" id="envInput" placeholder="Paste .env file contents — OPENAI_API_KEY=sk-..." spellcheck="false" autocomplete="off" />
+      <button class="icon-btn" onclick="loadKey()">Load</button>
+    </div>
+    <div id="keyStatus">No key loaded — key stays in memory only, never sent anywhere except OpenAI</div>
+  </div>
+
+  <!-- Model Selection -->
+  <div class="card">
+    <div class="card-title">Model</div>
+    <div class="model-row">
+      <div class="field">
+        <label for="modelFamily">Family</label>
+        <select id="modelFamily" onchange="updateModels()">
+          <option value="GPT-4o">GPT-4o</option>
+          <option value="GPT-4">GPT-4</option>
+          <option value="GPT-3.5">GPT-3.5</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="modelSelect">Model</label>
+        <select id="modelSelect"></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Form -->
+  <div class="card">
+    <div class="card-title">Product Details</div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="productName">Product Name</label>
+        <input type="text" id="productName" placeholder="e.g. Sony WH-1000XM5" />
+      </div>
+      <div class="field">
+        <label for="productCategory">Category</label>
+        <select id="productCategory">
+          <option value="Electronics">Electronics</option>
+          <option value="Clothing &amp; Apparel">Clothing &amp; Apparel</option>
+          <option value="Home &amp; Kitchen">Home &amp; Kitchen</option>
+          <option value="Food &amp; Beverage">Food &amp; Beverage</option>
+          <option value="Beauty &amp; Personal Care">Beauty &amp; Personal Care</option>
+          <option value="Sports &amp; Outdoors">Sports &amp; Outdoors</option>
+          <option value="Books">Books</option>
+          <option value="Toys &amp; Games">Toys &amp; Games</option>
+          <option value="Software">Software</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="field span2">
+        <label for="keyFeatures">Key Features</label>
+        <textarea id="keyFeatures" placeholder="List key features, comma-separated or one per line&#10;e.g. noise cancellation, 30hr battery, USB-C charging"></textarea>
+      </div>
+      <div class="field">
+        <label for="sentiment">Target Sentiment</label>
+        <select id="sentiment">
+          <option value="Positive">Positive</option>
+          <option value="Neutral">Neutral / Balanced</option>
+          <option value="Negative">Negative</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="reviewLength">Review Length</label>
+        <select id="reviewLength">
+          <option value="Short">Short (~100 words)</option>
+          <option value="Medium" selected>Medium (~250 words)</option>
+          <option value="Long">Long (~500 words)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button id="generateBtn" onclick="generate()">Generate Review</button>
+  <div id="errorMsg"></div>
+
+  <!-- Output -->
+  <div class="card" id="outputCard">
+    <div class="output-toolbar">
+      <div class="card-title">Generated Review</div>
+      <div class="btn-group">
+        <button class="icon-btn" id="copyBtn" onclick="copyReview()">Copy</button>
+        <button class="icon-btn" id="downloadBtn" onclick="downloadReview()">Download .txt</button>
+      </div>
+    </div>
+    <div id="reviewOutput"></div>
+  </div>
+
+  <!-- History -->
+  <div class="card" id="historyCard">
+    <div class="history-header">
+      <div class="card-title">History</div>
+      <button id="clearHistoryBtn" onclick="clearHistory()">Clear</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
