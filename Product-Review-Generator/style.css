@@ -77,6 +77,27 @@ select option { background: var(--surface); }
 textarea { resize: vertical; min-height: 74px; }
 
 /* ── Key loader ── */
+.drop-zone {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.drop-zone code { color: var(--accent); font-size: 0.82rem; }
+.drop-zone.drag-over { border-color: var(--accent); background: rgba(109,142,255,0.06); }
+
+.upload-label {
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.85rem;
+}
+#fileInput { display: none; }
+
 .key-row { display: flex; gap: 10px; align-items: stretch; }
 .key-row input { flex: 1; font-family: 'Menlo', 'Courier New', monospace; font-size: 0.82rem; }
 #keyStatus {

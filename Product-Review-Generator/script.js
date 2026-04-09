@@ -27,12 +27,15 @@ function updateModels() {
   });
 }
 
-// ── .env key loader ────────────────────────────────────────────
+// ── Key loader ─────────────────────────────────────────────────
 function loadKey() {
   const raw = document.getElementById('envInput').value.trim();
-  if (!raw) return setKeyStatus('Paste your .env contents or key above.', '');
+  if (!raw) return setKeyStatus('Paste your .env contents above.', '');
+  applyText(raw);
+}
 
-  const key = parseEnv(raw);
+function applyText(text) {
+  const key = parseEnv(text) || parseCsv(text);
   if (key) {
     apiKey = key;
     document.getElementById('envInput').value = '';
@@ -43,8 +46,7 @@ function loadKey() {
 }
 
 function parseEnv(text) {
-  // Accept raw key (sk-...) or KEY=value lines
-  if (/^sk-[A-Za-z0-9\-_]+$/.test(text)) return text;
+  if (/^sk-[A-Za-z0-9\-_]+$/.test(text.trim())) return text.trim();
   for (const line of text.split('\n')) {
     const idx = line.indexOf('=');
     if (idx === -1) continue;
@@ -55,10 +57,42 @@ function parseEnv(text) {
   return null;
 }
 
+function parseCsv(text) {
+  // Expects: header row, then rows like "openai,sk-..."
+  for (const line of text.split('\n').slice(1)) {
+    const parts = line.split(',').map(s => s.trim());
+    if (parts[0]?.toLowerCase() === 'openai' && parts[1]) return parts[1];
+  }
+  return null;
+}
+
 function setKeyStatus(msg, cls) {
   const el = document.getElementById('keyStatus');
   el.textContent = msg;
   el.className = cls;
+}
+
+// File drag-and-drop / browse
+function onFileChange(e) { readFile(e.target.files[0]); }
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
+}
+function onDragLeave(e) {
+  document.getElementById('dropZone').classList.remove('drag-over');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  readFile(e.dataTransfer.files[0]);
+}
+
+function readFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => applyText(ev.target.result);
+  reader.readAsText(file);
 }
 
 // Allow pressing Enter in the key field to load
