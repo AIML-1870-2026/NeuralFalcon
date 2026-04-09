@@ -58,10 +58,19 @@ function parseEnv(text) {
 }
 
 function parseCsv(text) {
-  // Expects: header row, then rows like "openai,sk-..."
-  for (const line of text.split('\n').slice(1)) {
+  // Standard format: header row "name,key", then "openai,sk-..."
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  // Skip header row, scan all rows for openai key
+  for (const line of lines.slice(1)) {
     const parts = line.split(',').map(s => s.trim());
     if (parts[0]?.toLowerCase() === 'openai' && parts[1]) return parts[1];
+  }
+  // Fallback: grab any cell that looks like an OpenAI key
+  for (const line of lines) {
+    for (const cell of line.split(',')) {
+      const v = cell.trim();
+      if (v.startsWith('sk-')) return v;
+    }
   }
   return null;
 }
@@ -79,7 +88,7 @@ function onDragOver(e) {
   e.preventDefault();
   document.getElementById('dropZone').classList.add('drag-over');
 }
-function onDragLeave(e) {
+function onDragLeave(_e) {
   document.getElementById('dropZone').classList.remove('drag-over');
 }
 function onDrop(e) {
