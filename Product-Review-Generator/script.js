@@ -37,7 +37,8 @@ function loadKey() {
 async function applyText(text) {
   const key = parseEnv(text) || parseCsv(text);
   if (!key) {
-    setKeyStatus('Could not find OPENAI_API_KEY in the pasted text.', 'err');
+    const raw = text.trim().slice(0, 60).replace(/\n/g, ' ↵ ');
+    setKeyStatus('Could not parse key. File contents: ' + raw, 'err');
     return;
   }
   document.getElementById('envInput').value = '';
