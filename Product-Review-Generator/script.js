@@ -34,15 +34,29 @@ function loadKey() {
   applyText(raw);
 }
 
-function applyText(text) {
+async function applyText(text) {
   const key = parseEnv(text) || parseCsv(text);
-  if (key) {
-    apiKey = key;
-    document.getElementById('envInput').value = '';
-    const preview = key.slice(0, 12) + '...' + key.slice(-4);
-    setKeyStatus('Key loaded ✓ — ' + preview, 'ok');
-  } else {
+  if (!key) {
     setKeyStatus('Could not find OPENAI_API_KEY in the pasted text.', 'err');
+    return;
+  }
+  document.getElementById('envInput').value = '';
+  const preview = key.slice(0, 12) + '...' + key.slice(-4);
+  setKeyStatus('Validating key ' + preview + '…', '');
+  try {
+    const resp = await fetch('https://api.openai.com/v1/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if (resp.ok) {
+      apiKey = key;
+      setKeyStatus('Key valid ✓ — ' + preview, 'ok');
+    } else {
+      const err = await resp.json().catch(() => ({}));
+      const msg = err?.error?.message || resp.statusText;
+      setKeyStatus('Key rejected: ' + msg, 'err');
+    }
+  } catch (_) {
+    setKeyStatus('Could not reach OpenAI to validate key. Check your connection.', 'err');
   }
 }
 
