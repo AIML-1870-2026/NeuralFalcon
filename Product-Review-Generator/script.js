@@ -39,7 +39,8 @@ function applyText(text) {
   if (key) {
     apiKey = key;
     document.getElementById('envInput').value = '';
-    setKeyStatus('Key loaded ✓', 'ok');
+    const preview = key.slice(0, 12) + '...' + key.slice(-4);
+    setKeyStatus('Key loaded ✓ — ' + preview, 'ok');
   } else {
     setKeyStatus('Could not find OPENAI_API_KEY in the pasted text.', 'err');
   }
@@ -83,7 +84,7 @@ function setKeyStatus(msg, cls) {
   el.className = cls;
   const badge = document.getElementById('keyBadge');
   if (cls === 'ok') {
-    badge.textContent = 'API key loaded ✓';
+    badge.textContent = msg;
     badge.className = 'key-badge key-badge--ok';
   } else {
     badge.textContent = 'No API key loaded';
