@@ -77,22 +77,51 @@ function parseEnv(text) {
   return null;
 }
 
+function parseCsvRow(line) {
+  // Handles quoted fields with commas inside
+  const cells = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === ',' && !inQ) {
+      cells.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  cells.push(cur.trim());
+  return cells;
+}
+
 function parseCsv(text) {
-  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
-  // Look for a row where first col contains 'openai' and second col is the value
-  for (const line of lines) {
-    const parts = line.split(',').map(unquote);
-    if (parts[0]?.toLowerCase().includes('openai') && parts[1] && !parts[1].toLowerCase().includes('openai')) {
-      return parts[1];
+  const lines = text.replace(/\r/g, '').split('\n').filter(Boolean);
+  const rows = lines.map(parseCsvRow);
+  if (rows.length === 0) return null;
+
+  // Find 'Value' column from header row
+  const header = rows[0].map(h => h.toLowerCase());
+  const valueIdx = header.indexOf('value');
+
+  // Search data rows for OpenAI key
+  for (const row of rows.slice(1)) {
+    const isOpenAI = row.some(c => c.toLowerCase().includes('openai'));
+    if (isOpenAI) {
+      if (valueIdx >= 0 && row[valueIdx]) return row[valueIdx];
+      const skCell = row.find(c => c.startsWith('sk-'));
+      if (skCell) return skCell;
     }
   }
-  // Fallback: any cell that looks like an OpenAI key
-  for (const line of lines) {
-    for (const cell of line.split(',')) {
-      const v = unquote(cell);
-      if (v.startsWith('sk-')) return v;
-    }
+
+  // Fallback: any cell starting with sk-
+  for (const row of rows) {
+    const skCell = row.find(c => c.startsWith('sk-'));
+    if (skCell) return skCell;
   }
+
   return null;
 }
 
