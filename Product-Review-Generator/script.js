@@ -34,31 +34,17 @@ function loadKey() {
   applyText(raw);
 }
 
-async function applyText(text) {
+function applyText(text) {
   const key = parseEnv(text) || parseCsv(text);
   if (!key) {
     const raw = text.trim().slice(0, 60).replace(/\n/g, ' ↵ ');
-    setKeyStatus('Could not parse key. File contents: ' + raw, 'err');
+    setKeyStatus('Could not parse key. Read: ' + raw, 'err');
     return;
   }
+  apiKey = key;
   document.getElementById('envInput').value = '';
   const preview = key.slice(0, 12) + '...' + key.slice(-4);
-  setKeyStatus('Validating key ' + preview + '…', '');
-  try {
-    const resp = await fetch('https://api.openai.com/v1/models', {
-      headers: { 'Authorization': 'Bearer ' + key }
-    });
-    if (resp.ok) {
-      apiKey = key;
-      setKeyStatus('Key valid ✓ — ' + preview, 'ok');
-    } else {
-      const err = await resp.json().catch(() => ({}));
-      const msg = err?.error?.message || resp.statusText;
-      setKeyStatus('Key rejected: ' + msg, 'err');
-    }
-  } catch (_) {
-    setKeyStatus('Could not reach OpenAI to validate key. Check your connection.', 'err');
-  }
+  setKeyStatus('Key loaded ✓ — ' + preview, 'ok');
 }
 
 function unquote(s) { return s.trim().replace(/^["']|["']$/g, ''); }
