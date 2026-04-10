@@ -245,7 +245,7 @@ async function generate() {
   let fullText = '';
 
   try {
-    const resp = await fetch(PROXY + encodeURIComponent(ENDPOINT), {
+    const resp = await fetch(PROXY + ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + apiKey,
