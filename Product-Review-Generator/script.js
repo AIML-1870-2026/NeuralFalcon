@@ -28,10 +28,14 @@ function updateModels() {
 }
 
 // ── Key loader ─────────────────────────────────────────────────
-function loadKey() {
-  const raw = document.getElementById('envInput').value.trim();
-  if (!raw) return setKeyStatus('Paste your .env contents above.', '');
-  applyText(raw);
+function loadManual() {
+  const raw = document.getElementById('manualKey').value.trim();
+  if (!raw) return setKeyStatus('Paste your sk-... key above.', 'err');
+  if (!raw.startsWith('sk-')) return setKeyStatus('Key should start with sk-. Got: ' + raw.slice(0, 20), 'err');
+  apiKey = raw;
+  document.getElementById('manualKey').value = '';
+  const preview = raw.slice(0, 12) + '...' + raw.slice(-4);
+  setKeyStatus('Key loaded ✓ — ' + preview, 'ok');
 }
 
 function applyText(text) {
@@ -148,9 +152,8 @@ function readFile(file) {
   reader.readAsText(file);
 }
 
-// Allow pressing Enter in the key field to load
-document.getElementById('envInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') loadKey();
+document.getElementById('manualKey').addEventListener('keydown', e => {
+  if (e.key === 'Enter') loadManual();
 });
 
 // ── Slider helpers ─────────────────────────────────────────────

@@ -18,18 +18,22 @@
   <!-- API Key -->
   <div class="card" id="keyCard">
     <div class="card-title">OpenAI Configuration</div>
+
+    <label class="key-label">Paste API key manually</label>
+    <div class="key-row">
+      <input type="text" id="manualKey" placeholder="sk-..." spellcheck="false" autocomplete="off" />
+      <button class="icon-btn" onclick="loadManual()">Load</button>
+    </div>
+
+    <div class="divider-label">or upload file</div>
+
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
       <div class="drop-icon">&#8659;</div>
-      <div class="drop-main">Drop <code>.env</code> or <code>.csv</code> here</div>
-      <div class="upload-label">or click to browse</div>
-      <div class="drop-hint">Mac: press <kbd>Cmd+Shift+.</kbd> in the file picker to see hidden files like <code>.env</code></div>
+      <div class="drop-main">Drop or click — <code>.env</code> or <code>.csv</code></div>
+      <div class="drop-hint">Mac users: press <kbd>Cmd+Shift+.</kbd> in the picker to see <code>.env</code></div>
       <input type="file" id="fileInput" accept="*/*" onchange="onFileChange(event)" />
     </div>
-    <div class="divider-label">or paste below</div>
-    <div class="key-row">
-      <input type="text" id="envInput" placeholder="Paste sk-... key directly, or full .env contents" spellcheck="false" autocomplete="off" />
-      <button class="icon-btn" onclick="loadKey()">Load</button>
-    </div>
+
     <div id="keyStatus">No key loaded — stays in memory only</div>
   </div>
 
@@ -153,6 +157,6 @@
   </div>
 
 </div>
-<script src="script.js?v=9"></script>
+<script src="script.js?v=10"></script>
 </body>
 </html>
