@@ -232,8 +232,11 @@ async function generate() {
 
   let fullText = '';
 
+  const PROXY = 'https://corsproxy.io/?url=';
+  const ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+
   try {
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    const resp = await fetch(PROXY + encodeURIComponent(ENDPOINT), {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + apiKey,
@@ -241,7 +244,7 @@ async function generate() {
       },
       body: JSON.stringify({
         model,
-        stream: true,
+        stream: false,
         messages: [{ role: 'user', content: prompt }],
       }),
     });
@@ -254,35 +257,12 @@ async function generate() {
       throw new Error('OpenAI error ' + resp.status + ': ' + msg);
     }
 
-    // Show output card while streaming
+    const data = await resp.json();
+    fullText = data.choices?.[0]?.message?.content || '';
+    if (!fullText) throw new Error('No response received from OpenAI.');
+
     showOutputCard();
-    document.getElementById('reviewOutput').innerHTML = '';
-
-    const reader = resp.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const data = line.slice(5).trim();
-        if (data === '[DONE]') continue;
-        try {
-          const ev = JSON.parse(data);
-          const delta = ev.choices?.[0]?.delta?.content;
-          if (delta) {
-            fullText += delta;
-            document.getElementById('reviewOutput').innerHTML = marked.parse(fullText);
-          }
-        } catch (_) {}
-      }
-    }
-
+    document.getElementById('reviewOutput').innerHTML = marked.parse(fullText);
     lastPlainText = fullText;
     addToHistory(name, model, fullText);
 
