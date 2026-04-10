@@ -60,32 +60,35 @@ async function applyText(text) {
   }
 }
 
+function unquote(s) { return s.trim().replace(/^["']|["']$/g, ''); }
+
 function parseEnv(text) {
-  const t = text.trim();
-  // Accept any sk- key directly (no strict character whitelist)
+  const t = text.trim().replace(/\r/g, '');
+  // Raw key pasted directly
   if (t.startsWith('sk-') && !t.includes('\n') && !t.includes('=')) return t;
   for (const line of t.split('\n')) {
     const idx = line.indexOf('=');
     if (idx === -1) continue;
-    const k = line.slice(0, idx).trim();
-    const v = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
+    const k = unquote(line.slice(0, idx));
+    const v = unquote(line.slice(idx + 1));
     if (k === 'OPENAI_API_KEY' && v) return v;
   }
   return null;
 }
 
 function parseCsv(text) {
-  // Standard format: header row "name,key", then "openai,sk-..."
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  // Skip header row, scan all rows for openai key
-  for (const line of lines.slice(1)) {
-    const parts = line.split(',').map(s => s.trim());
-    if (parts[0]?.toLowerCase() === 'openai' && parts[1]) return parts[1];
+  const lines = text.replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+  // Look for a row where first col contains 'openai' and second col is the value
+  for (const line of lines) {
+    const parts = line.split(',').map(unquote);
+    if (parts[0]?.toLowerCase().includes('openai') && parts[1] && !parts[1].toLowerCase().includes('openai')) {
+      return parts[1];
+    }
   }
-  // Fallback: grab any cell that looks like an OpenAI key
+  // Fallback: any cell that looks like an OpenAI key
   for (const line of lines) {
     for (const cell of line.split(',')) {
-      const v = cell.trim();
+      const v = unquote(cell);
       if (v.startsWith('sk-')) return v;
     }
   }
