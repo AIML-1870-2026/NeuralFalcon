@@ -51,6 +51,7 @@ function applyText(text) {
 }
 
 function unquote(s) { return s.trim().replace(/^["']|["']$/g, ''); }
+function cleanKey(s) { return s.replace(/["'\s]/g, ''); }
 
 function parseEnv(text) {
   const t = text.trim().replace(/\r/g, '');
@@ -61,7 +62,7 @@ function parseEnv(text) {
     if (idx === -1) continue;
     const k = unquote(line.slice(0, idx));
     const v = unquote(line.slice(idx + 1));
-    if (k === 'OPENAI_API_KEY' && v) return v;
+    if (k === 'OPENAI_API_KEY' && v) return cleanKey(v);
   }
   return null;
 }
@@ -99,16 +100,16 @@ function parseCsv(text) {
   for (const row of rows.slice(1)) {
     const isOpenAI = row.some(c => c.toLowerCase().includes('openai'));
     if (isOpenAI) {
-      if (valueIdx >= 0 && row[valueIdx]) return row[valueIdx];
-      const skCell = row.find(c => c.startsWith('sk-'));
-      if (skCell) return skCell;
+      if (valueIdx >= 0 && row[valueIdx]) return cleanKey(row[valueIdx]);
+      const skCell = row.find(c => c.replace(/["']/g, '').startsWith('sk-'));
+      if (skCell) return cleanKey(skCell);
     }
   }
 
-  // Fallback: any cell starting with sk-
+  // Fallback: any cell containing sk-
   for (const row of rows) {
-    const skCell = row.find(c => c.startsWith('sk-'));
-    if (skCell) return skCell;
+    const skCell = row.find(c => c.replace(/["']/g, '').startsWith('sk-'));
+    if (skCell) return cleanKey(skCell);
   }
 
   return null;
