@@ -1,5 +1,9 @@
 // Product Review Generator — script.js
 
+// ── CORS proxy (required for Firefox) ──────────────────────────
+const PROXY    = 'https://corsproxy.io/?';
+const ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+
 // ── Model catalog ──────────────────────────────────────────────
 const MODELS = {
   'GPT-4o':  ['gpt-4o', 'gpt-4o-mini'],
@@ -239,9 +243,6 @@ async function generate() {
   clearError();
 
   let fullText = '';
-
-  const PROXY = 'https://corsproxy.io/?url=';
-  const ENDPOINT = 'https://api.openai.com/v1/chat/completions';
 
   try {
     const resp = await fetch(PROXY + encodeURIComponent(ENDPOINT), {
