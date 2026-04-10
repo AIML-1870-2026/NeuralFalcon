@@ -159,12 +159,18 @@ document.getElementById('manualKey').addEventListener('keydown', e => {
 // ── Slider helpers ─────────────────────────────────────────────
 const SENTIMENT_LABELS = { '-1': 'Negative', '0': 'Neutral', '1': 'Positive' };
 const LENGTH_MAP = { 1: ['Short', '~100 words'], 2: ['Medium', '~250 words'], 3: ['Long', '~500 words'] };
+const TONE_MAP = { 1: 'Casual', 2: 'Conversational', 3: 'Balanced', 4: 'Professional', 5: 'Technical' };
 
 function updateSlider(input) {
   const el = document.getElementById(input.id + '-val');
   const label = SENTIMENT_LABELS[input.value];
   el.textContent = label;
   el.className = 'aspect-val ' + label.toLowerCase();
+}
+
+function updateToneLabel(input) {
+  const el = document.getElementById('toneLabel');
+  el.textContent = TONE_MAP[input.value];
 }
 
 function updateLengthLabel(input) {
@@ -190,6 +196,7 @@ function buildPrompt() {
   const features = document.getElementById('keyFeatures').value.trim() || 'Not specified';
   const lengthVal = parseInt(document.getElementById('reviewLength').value);
   const [, words] = LENGTH_MAP[lengthVal];
+  const tone     = TONE_MAP[document.getElementById('toneSlider').value];
   const aspects  = getAspects();
 
   const aspectLines = aspects.map(a => `  - ${a.name}: ${a.sentiment}`).join('\n');
@@ -205,6 +212,7 @@ Sentiment by aspect:
 ${aspectLines}
 
 Requirements:
+- Writing tone: ${tone}
 - Reflect each aspect's sentiment in the review — be critical where negative, enthusiastic where positive, balanced where neutral.
 - Length: ${words}
 - Format: Start with a markdown H2 title (include a star rating like ★★★★☆ based on overall sentiment), then write review paragraphs. Use **bold** for standout points.
