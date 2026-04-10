@@ -82,35 +82,51 @@
         <label>Sentiment by Aspect</label>
         <div class="aspect-grid">
           <div class="aspect-row">
-            <span class="aspect-label">Price / Value</span>
+            <div class="aspect-header">
+              <span class="aspect-label">Price / Value</span>
+              <span class="aspect-val positive" id="sentPrice-val">Positive</span>
+            </div>
             <input type="range" id="sentPrice" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
-            <span class="aspect-val positive" id="sentPrice-val">Positive</span>
+            <div class="slider-ticks"><span>Negative</span><span>Neutral</span><span>Positive</span></div>
           </div>
           <div class="aspect-row">
-            <span class="aspect-label">Features</span>
+            <div class="aspect-header">
+              <span class="aspect-label">Features</span>
+              <span class="aspect-val positive" id="sentFeatures-val">Positive</span>
+            </div>
             <input type="range" id="sentFeatures" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
-            <span class="aspect-val positive" id="sentFeatures-val">Positive</span>
+            <div class="slider-ticks"><span>Negative</span><span>Neutral</span><span>Positive</span></div>
           </div>
           <div class="aspect-row">
-            <span class="aspect-label">Build Quality</span>
+            <div class="aspect-header">
+              <span class="aspect-label">Build Quality</span>
+              <span class="aspect-val positive" id="sentBuild-val">Positive</span>
+            </div>
             <input type="range" id="sentBuild" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
-            <span class="aspect-val positive" id="sentBuild-val">Positive</span>
+            <div class="slider-ticks"><span>Negative</span><span>Neutral</span><span>Positive</span></div>
           </div>
           <div class="aspect-row">
-            <span class="aspect-label">Usability</span>
+            <div class="aspect-header">
+              <span class="aspect-label">Usability</span>
+              <span class="aspect-val positive" id="sentUsability-val">Positive</span>
+            </div>
             <input type="range" id="sentUsability" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
-            <span class="aspect-val positive" id="sentUsability-val">Positive</span>
+            <div class="slider-ticks"><span>Negative</span><span>Neutral</span><span>Positive</span></div>
           </div>
         </div>
       </div>
       <div class="field span2">
-        <label>Review Length — <span id="lengthLabel">Medium (~250 words)</span></label>
-        <input type="range" id="reviewLength" min="1" max="3" step="1" value="2" oninput="updateLengthLabel(this)" class="length-slider" />
-        <div class="length-ticks"><span>Short</span><span>Medium</span><span>Long</span></div>
+        <div class="aspect-header">
+          <label for="reviewLength">Review Length</label>
+          <span class="aspect-val neutral" id="lengthLabel">Medium</span>
+        </div>
+        <input type="range" id="reviewLength" min="1" max="3" step="1" value="2" oninput="updateLengthLabel(this)" />
+        <div class="slider-ticks"><span>Short (~100w)</span><span>Medium (~250w)</span><span>Long (~500w)</span></div>
       </div>
     </div>
   </div>
 
+  <div id="keyBadge" class="key-badge key-badge--missing">No API key loaded</div>
   <button id="generateBtn" onclick="generate()">Generate Review</button>
   <div id="errorMsg"></div>
 

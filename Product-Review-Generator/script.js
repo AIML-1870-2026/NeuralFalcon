@@ -81,6 +81,14 @@ function setKeyStatus(msg, cls) {
   const el = document.getElementById('keyStatus');
   el.textContent = msg;
   el.className = cls;
+  const badge = document.getElementById('keyBadge');
+  if (cls === 'ok') {
+    badge.textContent = 'API key loaded ✓';
+    badge.className = 'key-badge key-badge--ok';
+  } else {
+    badge.textContent = 'No API key loaded';
+    badge.className = 'key-badge key-badge--missing';
+  }
 }
 
 // File drag-and-drop / browse
@@ -123,8 +131,10 @@ function updateSlider(input) {
 }
 
 function updateLengthLabel(input) {
-  const [name, words] = LENGTH_MAP[input.value];
-  document.getElementById('lengthLabel').textContent = `${name} (${words})`;
+  const [name] = LENGTH_MAP[input.value];
+  const el = document.getElementById('lengthLabel');
+  el.textContent = name;
+  el.className = 'aspect-val neutral';
 }
 
 function getAspects() {
