@@ -46,7 +46,6 @@ function applyText(text) {
     return;
   }
   apiKey = key;
-  document.getElementById('envInput').value = '';
   const preview = key.slice(0, 12) + '...' + key.slice(-4);
   setKeyStatus('Key loaded ✓ — ' + preview, 'ok');
 }

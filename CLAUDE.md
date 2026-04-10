@@ -24,8 +24,17 @@ When I say "Deploy":
    - Confirm we're inside the Gamertag folder (or a subfolder of it)
    - Check that .git exists at the root level
 
-2. **Pre-Deploy Check**
-   - Remind the user to check "web doctor", then push immediately without waiting for confirmation.
+2. **Pre-Deploy Scan (required — do this automatically before every push)**
+   - Read all changed/new `.html`, `.js`, and `.css` files
+   - Check for patterns that trigger Google Safe Browsing flags:
+     - `type="password"` fields paired with brand names or credential labels
+     - Forms with `action=` posting to external servers
+     - Visual cloning of real websites (copied brand logos, login layouts)
+     - Social engineering language ("Your account has been compromised", "Click here to claim your prize", etc.)
+     - Fake download/alert warnings
+     - Suspicious JS: `eval()`, obfuscated strings, unexpected `document.write()` or iframe injection
+   - If any issues are found, fix them before committing
+   - Remind the user to also manually run **web doctor** at https://www.frontiersof.tech/deploying-to-github/ as a second pass
 
 3. **Stage and Commit**
    - `git add .`
@@ -56,6 +65,9 @@ When I say "Show my URLs" or "Where's my stuff?":
 
 1. List all subfolders that contain an index.html
 2. For each, show the live URL pattern
+
+## Stretch Features
+Always implement ALL stretch features listed in a spec without being asked. Do not skip or defer them.
 
 ## Coding Standards
 - All projects must be split into separate files: `index.html`, `style.css`, and `game.js` (or appropriate `.js` name)
