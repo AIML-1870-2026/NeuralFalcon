@@ -132,6 +132,52 @@ textarea { resize: vertical; min-height: 74px; }
 #keyStatus.ok   { color: var(--success); }
 #keyStatus.err  { color: var(--danger); }
 
+/* ── Aspect sentiment sliders ── */
+.aspect-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.aspect-row  { display: grid; grid-template-columns: 110px 1fr 76px; align-items: center; gap: 12px; }
+.aspect-label { font-size: 0.82rem; color: var(--muted); }
+.aspect-val   { font-size: 0.8rem; font-weight: 600; text-align: right; }
+.aspect-val.positive { color: var(--success); }
+.aspect-val.neutral  { color: var(--muted); }
+.aspect-val.negative { color: var(--danger); }
+
+/* ── Length slider ── */
+.length-slider { width: 100%; margin-top: 8px; }
+.length-ticks  {
+  display: flex; justify-content: space-between;
+  font-size: 0.75rem; color: var(--muted); margin-top: 4px;
+}
+
+/* ── Range input base ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--bg);
+}
+
 /* ── Model selects ── */
 .model-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 

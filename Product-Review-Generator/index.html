@@ -78,21 +78,35 @@
         <label for="keyFeatures">Key Features</label>
         <textarea id="keyFeatures" placeholder="List key features, comma-separated or one per line&#10;e.g. noise cancellation, 30hr battery, USB-C charging">Industry-leading noise cancellation, 30-hour battery life, USB-C charging, multipoint Bluetooth (2 devices), foldable design, touch controls, speak-to-chat</textarea>
       </div>
-      <div class="field">
-        <label for="sentiment">Target Sentiment</label>
-        <select id="sentiment">
-          <option value="Positive">Positive</option>
-          <option value="Neutral">Neutral / Balanced</option>
-          <option value="Negative">Negative</option>
-        </select>
+      <div class="field span2">
+        <label>Sentiment by Aspect</label>
+        <div class="aspect-grid">
+          <div class="aspect-row">
+            <span class="aspect-label">Price / Value</span>
+            <input type="range" id="sentPrice" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
+            <span class="aspect-val positive" id="sentPrice-val">Positive</span>
+          </div>
+          <div class="aspect-row">
+            <span class="aspect-label">Features</span>
+            <input type="range" id="sentFeatures" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
+            <span class="aspect-val positive" id="sentFeatures-val">Positive</span>
+          </div>
+          <div class="aspect-row">
+            <span class="aspect-label">Build Quality</span>
+            <input type="range" id="sentBuild" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
+            <span class="aspect-val positive" id="sentBuild-val">Positive</span>
+          </div>
+          <div class="aspect-row">
+            <span class="aspect-label">Usability</span>
+            <input type="range" id="sentUsability" min="-1" max="1" step="1" value="1" oninput="updateSlider(this)" />
+            <span class="aspect-val positive" id="sentUsability-val">Positive</span>
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label for="reviewLength">Review Length</label>
-        <select id="reviewLength">
-          <option value="Short">Short (~100 words)</option>
-          <option value="Medium" selected>Medium (~250 words)</option>
-          <option value="Long">Long (~500 words)</option>
-        </select>
+      <div class="field span2">
+        <label>Review Length — <span id="lengthLabel">Medium (~250 words)</span></label>
+        <input type="range" id="reviewLength" min="1" max="3" step="1" value="2" oninput="updateLengthLabel(this)" class="length-slider" />
+        <div class="length-ticks"><span>Short</span><span>Medium</span><span>Long</span></div>
       </div>
     </div>
   </div>

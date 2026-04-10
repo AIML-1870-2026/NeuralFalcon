@@ -46,8 +46,10 @@ function applyText(text) {
 }
 
 function parseEnv(text) {
-  if (/^sk-[A-Za-z0-9\-_]+$/.test(text.trim())) return text.trim();
-  for (const line of text.split('\n')) {
+  const t = text.trim();
+  // Accept any sk- key directly (no strict character whitelist)
+  if (t.startsWith('sk-') && !t.includes('\n') && !t.includes('=')) return t;
+  for (const line of t.split('\n')) {
     const idx = line.indexOf('=');
     if (idx === -1) continue;
     const k = line.slice(0, idx).trim();
@@ -109,28 +111,57 @@ document.getElementById('envInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') loadKey();
 });
 
+// ── Slider helpers ─────────────────────────────────────────────
+const SENTIMENT_LABELS = { '-1': 'Negative', '0': 'Neutral', '1': 'Positive' };
+const LENGTH_MAP = { 1: ['Short', '~100 words'], 2: ['Medium', '~250 words'], 3: ['Long', '~500 words'] };
+
+function updateSlider(input) {
+  const el = document.getElementById(input.id + '-val');
+  const label = SENTIMENT_LABELS[input.value];
+  el.textContent = label;
+  el.className = 'aspect-val ' + label.toLowerCase();
+}
+
+function updateLengthLabel(input) {
+  const [name, words] = LENGTH_MAP[input.value];
+  document.getElementById('lengthLabel').textContent = `${name} (${words})`;
+}
+
+function getAspects() {
+  return [
+    { name: 'Price / Value', id: 'sentPrice' },
+    { name: 'Features',      id: 'sentFeatures' },
+    { name: 'Build Quality', id: 'sentBuild' },
+    { name: 'Usability',     id: 'sentUsability' },
+  ].map(a => ({ name: a.name, sentiment: SENTIMENT_LABELS[document.getElementById(a.id).value] }));
+}
+
 // ── Prompt builder ─────────────────────────────────────────────
 function buildPrompt() {
   const name     = document.getElementById('productName').value.trim() || 'Unknown Product';
   const category = document.getElementById('productCategory').value;
   const features = document.getElementById('keyFeatures').value.trim() || 'Not specified';
-  const sentiment = document.getElementById('sentiment').value;
-  const length   = document.getElementById('reviewLength').value;
+  const lengthVal = parseInt(document.getElementById('reviewLength').value);
+  const [, words] = LENGTH_MAP[lengthVal];
+  const aspects  = getAspects();
 
-  const wordMap = { Short: '~100 words', Medium: '~250 words', Long: '~500 words' };
+  const aspectLines = aspects.map(a => `  - ${a.name}: ${a.sentiment}`).join('\n');
 
-  return `You are an experienced product reviewer. Write a ${sentiment.toLowerCase()} product review in markdown format.
+  return `You are an experienced product reviewer. Write a product review in markdown format.
 
 Product: ${name}
 Category: ${category}
 Key Features:
 ${features}
 
+Sentiment by aspect:
+${aspectLines}
+
 Requirements:
-- Tone: ${sentiment}
-- Length: ${wordMap[length]}
-- Format: Start with a markdown H2 title (include a star rating like ★★★★☆), then write review paragraphs. Use **bold** for emphasis on standout points.
-- Do NOT include any preamble like "Here is your review". Just output the review directly.`;
+- Reflect each aspect's sentiment in the review — be critical where negative, enthusiastic where positive, balanced where neutral.
+- Length: ${words}
+- Format: Start with a markdown H2 title (include a star rating like ★★★★☆ based on overall sentiment), then write review paragraphs. Use **bold** for standout points.
+- Do NOT include any preamble like "Here is your review". Output the review directly.`;
 }
 
 // ── Generate ───────────────────────────────────────────────────
@@ -171,7 +202,7 @@ async function generate() {
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({ error: { message: resp.statusText } }));
       const msg = err?.error?.message || resp.statusText;
-      if (resp.status === 401) throw new Error('Authentication failed (401). Check your OpenAI API key.');
+      if (resp.status === 401) throw new Error('Authentication failed (401): ' + msg);
       if (resp.status === 429) throw new Error('Rate limited by OpenAI. Please wait a moment and try again.');
       throw new Error('OpenAI error ' + resp.status + ': ' + msg);
     }
