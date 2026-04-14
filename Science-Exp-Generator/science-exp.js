@@ -326,14 +326,20 @@ function copyExp() {
 
 function printObsSheet() {
   document.body.classList.add('print-obs');
+  window.addEventListener('afterprint', function h() {
+    document.body.classList.remove('print-obs');
+    window.removeEventListener('afterprint', h);
+  });
   window.print();
-  document.body.classList.remove('print-obs');
 }
 
 function printWorksheet() {
   document.body.classList.add('print-worksheet');
+  window.addEventListener('afterprint', function h() {
+    document.body.classList.remove('print-worksheet');
+    window.removeEventListener('afterprint', h);
+  });
   window.print();
-  document.body.classList.remove('print-worksheet');
 }
 
 // ── Observation sheet builder ────────────────────────────────────
