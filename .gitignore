@@ -1,0 +1,5 @@
+# Ignore temp folders (reference/scratch files, not part of any project)
+temp/
+
+# API keys — never commit
+.env

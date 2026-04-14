@@ -1,25 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Science Experiment Generator</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 700px;
-            margin: 80px auto;
-            padding: 20px;
-            background: #0d1117;
-            color: #c9d1d9;
-            text-align: center;
-        }
-        h1 { color: #58a6ff; font-size: 2rem; margin-bottom: 0.5rem; }
-        p { color: #8b949e; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Science Experiment Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>Science Experiment Generator</h1>
-    <p>Coming soon — drop your spec and we'll build it.</p>
+
+<header>
+  <h1>Science Experiment Generator</h1>
+  <p>Enter your supplies &mdash; get a hands-on experiment in seconds</p>
+</header>
+
+<div class="page">
+
+  <!-- ── API Key ────────────────────────────────────────────────── -->
+  <div class="card" id="keyCard">
+    <div class="card-title">OpenAI Configuration</div>
+
+    <div class="field" style="margin-bottom:0.75rem">
+      <label for="manualKey">Paste API key</label>
+      <div class="key-row">
+        <input type="text" id="manualKey" placeholder="sk-..." spellcheck="false" autocomplete="off" />
+        <button class="icon-btn" onclick="loadManual()">Load</button>
+      </div>
+    </div>
+
+    <div class="divider-label">or upload file</div>
+
+    <div class="drop-zone" id="dropZone"
+         onclick="document.getElementById('fileInput').click()"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave()"
+         ondrop="onDrop(event)">
+      <div class="drop-icon">&#8659;</div>
+      <div class="drop-main">Drop or click &mdash; <code>.env</code> or <code>.csv</code></div>
+      <div class="drop-hint">Mac: press <kbd>Cmd+Shift+.</kbd> in the picker to show hidden files</div>
+      <input type="file" id="fileInput" accept="*/*" onchange="onFileChange(event)" />
+    </div>
+
+    <div id="keyStatus">No key loaded &mdash; stays in memory only, never stored</div>
+  </div>
+
+  <!-- ── Inputs ─────────────────────────────────────────────────── -->
+  <div class="card" id="inputCard">
+    <div class="card-title">Experiment Setup</div>
+
+    <div class="form-row" style="margin-bottom:1rem">
+      <div class="field">
+        <label for="gradeLevel">Grade Level</label>
+        <select id="gradeLevel">
+          <option value="K-2">K&ndash;2</option>
+          <option value="3-5">3&ndash;5</option>
+          <option value="6-8" selected>6&ndash;8</option>
+          <option value="9-12">9&ndash;12</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="supplies">Available Supplies</label>
+      <textarea id="supplies"
+        placeholder="e.g. baking soda, vinegar, food coloring, plastic cups, balloons"></textarea>
+      <span class="field-error" id="suppliesErr">Please list at least one supply.</span>
+    </div>
+
+    <div class="chips-label">Quick-pick common supplies:</div>
+    <div class="chips-wrap" id="chipsWrap"></div>
+  </div>
+
+  <div id="keyBadge" class="key-badge key-badge--missing">No API key loaded</div>
+
+  <button id="generateBtn" onclick="generate()">Generate Experiment</button>
+
+  <div id="errorMsg"></div>
+
+  <!-- ── Output ─────────────────────────────────────────────────── -->
+  <div class="card" id="outputCard">
+    <div class="output-toolbar">
+      <div class="card-title" style="margin-bottom:0">Generated Experiment</div>
+      <div class="btn-group">
+        <button class="icon-btn" id="copyBtn" onclick="copyExp()">Copy</button>
+        <button class="icon-btn" onclick="printExp()">Print Worksheet</button>
+      </div>
+    </div>
+    <div id="diffBadge"></div>
+    <div id="expOutput"></div>
+    <!-- Print-only observations section -->
+    <div class="print-obs">
+      <h3>My Observations</h3>
+      <div class="obs-line"></div>
+      <div class="obs-line"></div>
+      <div class="obs-line"></div>
+      <div class="obs-line"></div>
+      <div class="obs-line"></div>
+      <div class="obs-line"></div>
+    </div>
+  </div>
+
+  <!-- ── Supply Substitution ────────────────────────────────────── -->
+  <div class="card" id="subCard">
+    <div class="card-title">Supply Substitution</div>
+    <p style="font-size:0.88rem;color:var(--muted);margin-bottom:0.75rem">
+      Missing something? Type it below and get household alternatives.
+    </p>
+    <div class="key-row">
+      <input type="text" id="missingSupply" placeholder="e.g. vinegar" />
+      <button class="icon-btn" id="subBtn" onclick="getSubstitution()">Suggest</button>
+    </div>
+    <div id="subOutput"></div>
+  </div>
+
+  <!-- ── History ────────────────────────────────────────────────── -->
+  <div class="card" id="historyCard">
+    <div class="history-header">
+      <div class="card-title" style="margin-bottom:0">Experiment History</div>
+      <button class="icon-btn" onclick="clearHistory()">Clear</button>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
+</div><!-- .page -->
+
+<script src="science-exp.js"></script>
 </body>
 </html>
