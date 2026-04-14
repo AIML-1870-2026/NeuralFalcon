@@ -20,12 +20,35 @@ const COMMON_SUPPLIES = [
   'cornstarch', 'lemon juice', 'ice', 'matches', 'magnifying glass',
 ];
 
+const SUPPLY_EMOJI = {
+  'baking soda':      '🥄',
+  'vinegar':          '🍶',
+  'salt':             '🧂',
+  'sugar':            '🍬',
+  'food coloring':    '🎨',
+  'plastic cups':     '🥤',
+  'balloons':         '🎈',
+  'tape':             '📎',
+  'paper towels':     '🧻',
+  'rubber bands':     '🔗',
+  'aluminum foil':    '🔲',
+  'candle':           '🕯️',
+  'string':           '🧵',
+  'dish soap':        '🫧',
+  'cooking oil':      '🫙',
+  'cornstarch':       '🌽',
+  'lemon juice':      '🍋',
+  'ice':              '🧊',
+  'matches':          '🔥',
+  'magnifying glass': '🔍',
+};
+
 (function initChips() {
   const wrap = document.getElementById('chipsWrap');
   COMMON_SUPPLIES.forEach(s => {
     const btn       = document.createElement('button');
     btn.className   = 'chip';
-    btn.textContent = s;
+    btn.innerHTML   = `<span class="chip-img">${SUPPLY_EMOJI[s] || '🔬'}</span><span class="chip-label">${s}</span>`;
     btn.onclick     = () => appendSupply(s);
     wrap.appendChild(btn);
   });
@@ -158,7 +181,17 @@ DIFFICULTY: Easy
 DIFFICULTY: Medium
 DIFFICULTY: Hard
 
-After that first line, format the rest of your response using markdown with clear headers and numbered steps.`;
+After that first line, write the experiment in markdown with clear headers and numbered steps.
+
+Then, after the full experiment, output a line containing only: ===WORKSHEET===
+
+After that delimiter, write a printable student worksheet in markdown tailored specifically to this experiment:
+- ## [Experiment Title] — Student Worksheet
+- **Name:** _________________________ &nbsp;&nbsp; **Date:** _________________________
+- **My Hypothesis:** I think that _______________________________________________
+- Then 3 specific observation questions written for THIS experiment (e.g. "How many seconds did the fizzing last?", "What color change did you observe?"). Format each as a bold question followed by a blank line for the answer.
+- **My Conclusion:** I learned that _______________________________________________
+- **Did your results match your hypothesis?** &nbsp; [ ] Yes &nbsp;&nbsp; [ ] No`;
 }
 
 // ── Generate ────────────────────────────────────────────────────
@@ -224,15 +257,23 @@ async function generate() {
 
 // ── Render output ───────────────────────────────────────────────
 function renderOutput(md) {
+  // Split difficulty line
   const lines = md.split('\n');
   let diff = null;
-  let body = md;
+  let rest = md;
 
   if (lines[0].trim().startsWith('DIFFICULTY:')) {
     diff = lines[0].replace('DIFFICULTY:', '').trim().toLowerCase();
-    body = lines.slice(1).join('\n').trimStart();
+    rest = lines.slice(1).join('\n').trimStart();
   }
 
+  // Split experiment from worksheet
+  const WORKSHEET_DELIM = '===WORKSHEET===';
+  const delimIdx = rest.indexOf(WORKSHEET_DELIM);
+  const expMd       = delimIdx >= 0 ? rest.slice(0, delimIdx).trimEnd() : rest;
+  const worksheetMd = delimIdx >= 0 ? rest.slice(delimIdx + WORKSHEET_DELIM.length).trimStart() : '';
+
+  // Difficulty badge
   const badge = document.getElementById('diffBadge');
   if (diff) {
     const label       = diff.charAt(0).toUpperCase() + diff.slice(1);
@@ -242,7 +283,9 @@ function renderOutput(md) {
     badge.className = '';
   }
 
-  document.getElementById('expOutput').innerHTML = marked.parse(body);
+  document.getElementById('expOutput').innerHTML = marked.parse(expMd);
+  document.getElementById('worksheetOutput').innerHTML = worksheetMd ? marked.parse(worksheetMd) : '';
+
   showOutputCard();
   document.getElementById('subCard').classList.add('visible');
   window.scrollTo({ top: document.getElementById('outputCard').offsetTop - 20, behavior: 'smooth' });
