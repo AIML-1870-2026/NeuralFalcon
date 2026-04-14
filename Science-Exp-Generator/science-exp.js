@@ -285,6 +285,7 @@ function renderOutput(md) {
 
   document.getElementById('expOutput').innerHTML = marked.parse(expMd);
   document.getElementById('worksheetOutput').innerHTML = worksheetMd ? marked.parse(worksheetMd) : '';
+  document.getElementById('observationOutput').innerHTML = buildObsSheet(expMd);
 
   showOutputCard();
   document.getElementById('subCard').classList.add('visible');
@@ -323,7 +324,61 @@ function copyExp() {
   });
 }
 
-function printExp() { window.print(); }
+function printObsSheet() {
+  document.body.classList.add('print-obs');
+  window.print();
+  document.body.classList.remove('print-obs');
+}
+
+function printWorksheet() {
+  document.body.classList.add('print-worksheet');
+  window.print();
+  document.body.classList.remove('print-worksheet');
+}
+
+// ── Observation sheet builder ────────────────────────────────────
+function buildObsSheet(expMd) {
+  const titleMatch = expMd.match(/^##\s+(.+)$/m);
+  const title      = titleMatch ? titleMatch[1].trim() : 'Science Experiment';
+
+  function blankLines(n) {
+    return Array(n).fill('<div class="obs-blank-line"></div>').join('');
+  }
+
+  return `
+    <div class="obs-sheet">
+      <h2>${title} &mdash; Observation Sheet</h2>
+      <div class="obs-field-row">
+        <div class="obs-field"><strong>Name:</strong><div class="obs-blank-line"></div></div>
+        <div class="obs-field"><strong>Date:</strong><div class="obs-blank-line"></div></div>
+      </div>
+      <div class="obs-section">
+        <h3>Before: My Hypothesis</h3>
+        <p>I think that&hellip;</p>
+        ${blankLines(3)}
+      </div>
+      <div class="obs-section">
+        <h3>During: What I Observed</h3>
+        <p>Write or draw what you notice as the experiment happens.</p>
+        ${blankLines(6)}
+      </div>
+      <div class="obs-section obs-draw-box">
+        <h3>Sketch / Drawing</h3>
+        <div class="draw-area"></div>
+      </div>
+      <div class="obs-section">
+        <h3>After: What Happened</h3>
+        ${blankLines(4)}
+      </div>
+      <div class="obs-section">
+        <h3>My Conclusion</h3>
+        <p>I learned that&hellip;</p>
+        ${blankLines(3)}
+        <p style="margin-top:1rem"><strong>Did your results match your hypothesis?</strong>
+          &nbsp;&nbsp; [ ] Yes &nbsp;&nbsp; [ ] No</p>
+      </div>
+    </div>`;
+}
 
 // ── Supply Substitution ─────────────────────────────────────────
 async function getSubstitution() {

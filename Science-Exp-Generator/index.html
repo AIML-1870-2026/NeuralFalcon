@@ -83,12 +83,15 @@
       <div class="card-title" style="margin-bottom:0">Generated Experiment</div>
       <div class="btn-group">
         <button class="icon-btn" id="copyBtn" onclick="copyExp()">Copy</button>
-        <button class="icon-btn" onclick="printExp()">Print Worksheet</button>
+        <button class="icon-btn" onclick="printObsSheet()">Print Observation Sheet</button>
+        <button class="icon-btn btn-secondary" onclick="printWorksheet()">Print Experiment Worksheet</button>
       </div>
     </div>
     <div id="diffBadge"></div>
     <div id="expOutput"></div>
-    <!-- Worksheet: hidden on screen, shown on print -->
+    <!-- Observation sheet: print only -->
+    <div id="observationOutput" class="observation-output"></div>
+    <!-- AI worksheet: print only -->
     <div id="worksheetOutput" class="worksheet-output"></div>
   </div>
 
