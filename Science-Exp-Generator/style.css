@@ -330,10 +330,7 @@ textarea { resize: vertical; min-height: 90px; }
 .observation-output,
 .worksheet-output { display: none; }
 
-/* ── Secondary button style ───────────────────────────────────── */
-.btn-secondary { color: var(--muted); }
-
-/* ── Print shared base ────────────────────────────────────────── */
+/* ── Print styles ─────────────────────────────────────────────── */
 @media print {
   header, #keyCard, #inputCard, #generateBtn,
   #errorMsg, .output-toolbar, #subCard,
@@ -347,26 +344,27 @@ textarea { resize: vertical; min-height: 90px; }
     border: none;
     padding: 0;
   }
-  #expOutput h2 { color: #000; }
-  #diffBadge.visible { display: inline-block !important; }
+  #expOutput { display: none !important; }
+  #diffBadge { display: none !important; }
 
-  /* ── Observation sheet (body.print-obs) ─── */
-  body.print-obs #expOutput,
-  body.print-obs #diffBadge,
-  body.print-obs .worksheet-output { display: none !important; }
+  /* Observation sheet — page 1 */
+  .observation-output {
+    display: block;
+    page-break-after: always;
+  }
 
-  body.print-obs .observation-output { display: block; }
+  /* AI worksheet — page 2 */
+  .worksheet-output {
+    display: block;
+  }
 
+  /* ── Observation sheet styles ── */
   .obs-sheet { font-family: Georgia, serif; }
   .obs-sheet h2 { font-size: 1.2rem; margin-bottom: 1.25rem; }
   .obs-sheet h3 { font-size: 0.95rem; font-weight: 700; margin: 1.25rem 0 0.4rem; }
   .obs-sheet p  { font-size: 0.9rem; color: #444; margin-bottom: 0.3rem; }
 
-  .obs-field-row {
-    display: flex;
-    gap: 2rem;
-    margin-bottom: 1.25rem;
-  }
+  .obs-field-row { display: flex; gap: 2rem; margin-bottom: 1.25rem; }
   .obs-field { flex: 1; }
   .obs-field strong { font-size: 0.9rem; }
 
@@ -376,22 +374,9 @@ textarea { resize: vertical; min-height: 90px; }
     margin-bottom: 0.2rem;
   }
   .obs-section { margin-bottom: 0.5rem; }
+  .draw-area { border: 1px solid #999; height: 120px; margin-top: 0.4rem; }
 
-  .draw-area {
-    border: 1px solid #999;
-    height: 120px;
-    margin-top: 0.4rem;
-  }
-
-  /* ── AI worksheet (body.print-worksheet) ── */
-  body.print-worksheet #expOutput,
-  body.print-worksheet #diffBadge,
-  body.print-worksheet .observation-output { display: none !important; }
-
-  body.print-worksheet .worksheet-output {
-    display: block;
-    margin-top: 0;
-  }
+  /* ── AI worksheet styles ── */
   .worksheet-output h2 { font-size: 1.1rem; margin-bottom: 1rem; color: #000; }
   .worksheet-output p,
   .worksheet-output li { font-size: 0.95rem; margin-bottom: 1.2rem; line-height: 2; }
