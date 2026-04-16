@@ -26,15 +26,14 @@
 
     <!-- ── API Setup ──────────────────────────────────── -->
     <section id="api-setup">
-        <h2>API Key</h2>
-        <div id="drop-zone">
-            Drop <code>.env</code> here or
-            <label class="file-label">
-                browse<input type="file" id="env-upload" accept=".env,.txt">
-            </label>
+        <h2>OpenAI API Key</h2>
+        <div class="key-input-row">
+            <input type="text" id="key-input" placeholder="sk-..." autocomplete="off" spellcheck="false">
+            <button id="key-save-btn" class="btn-primary">Save</button>
+            <button id="key-clear-btn" class="btn-secondary">Clear</button>
         </div>
         <span id="api-status">No key loaded</span>
-        <p class="hint">Key is held in memory only — never written to localStorage or sent anywhere except <code>api.anthropic.com</code>.</p>
+        <p class="hint">Saved to <code>localStorage</code> for convenience. Never sent anywhere except <code>api.openai.com</code>.</p>
     </section>
 
     <!-- ── Bet + Deal ────────────────────────────────── -->
@@ -100,8 +99,8 @@
             <label>Compare with:</label>
             <select id="compare-model">
                 <option value="">None</option>
-                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
-                <option value="claude-opus-4-7">Claude Opus 4.7</option>
+                <option value="gpt-4o-mini">GPT-4o Mini</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo</option>
             </select>
         </div>
 

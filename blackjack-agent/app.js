@@ -98,18 +98,6 @@ function canSplit(hand) {
         G.balance >= G.currentBet;
 }
 
-// ─── .env Parsing (pattern from LLM-API-Tester) ──────────
-function parseEnv(text) {
-    const result = {};
-    text.split('\n').filter(l => l.includes('=')).forEach(l => {
-        const idx = l.indexOf('=');
-        const k = l.slice(0, idx).trim();
-        const v = l.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
-        if (k === 'ANTHROPIC_API_KEY') result.anthropic = v;
-    });
-    return result;
-}
-
 // ─── Rendering ───────────────────────────────────────────
 function cardHTML(card) {
     if (!card.faceUp) return `<div class="card face-down">🂠</div>`;
@@ -618,55 +606,55 @@ function showToast(msg, type = 'info') {
     setTimeout(() => t.remove(), 3200);
 }
 
+// ─── Key Management ───────────────────────────────────────
+const LS_KEY = 'bj_openai_key';
+
+function applyKey(key) {
+    key = key.trim();
+    if (!key.startsWith('sk-')) { showToast('Key should start with sk-', 'warn'); return false; }
+    G.apiKey = key;
+    setApiKey(key);
+    localStorage.setItem(LS_KEY, key);
+    document.getElementById('api-status').textContent = 'Key loaded ✓ (' + key.slice(0,6) + '••••' + key.slice(-4) + ')';
+    document.getElementById('api-status').classList.add('loaded');
+    document.getElementById('key-input').value = key;
+    document.getElementById('deal-btn').disabled = G.currentBet === 0;
+    agentLog('info', 'OpenAI key saved to localStorage');
+    return true;
+}
+
+function clearKey() {
+    G.apiKey = null;
+    setApiKey(null);
+    localStorage.removeItem(LS_KEY);
+    document.getElementById('api-status').textContent = 'No key loaded';
+    document.getElementById('api-status').classList.remove('loaded');
+    document.getElementById('key-input').value = '';
+    document.getElementById('deal-btn').disabled = true;
+    showToast('Key cleared.', 'info');
+}
+
 // ─── UI Event Wiring ─────────────────────────────────────
 function initUI() {
-    // .env upload
-    const envInput = document.getElementById('env-upload');
-    envInput.addEventListener('change', e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-            const parsed = parseEnv(ev.target.result);
-            if (parsed.anthropic) {
-                G.apiKey = parsed.anthropic;
-                setApiKey(parsed.anthropic);
-                document.getElementById('api-status').textContent = 'Key loaded ✓';
-                document.getElementById('api-status').classList.add('loaded');
-                agentLog('info', 'API key loaded from .env (in-memory only)');
-                document.getElementById('deal-btn').disabled = G.currentBet === 0;
-                showToast('API key loaded ✓', 'info');
-            } else {
-                showToast('No ANTHROPIC_API_KEY found in .env', 'error');
-            }
-        };
-        reader.readAsText(file);
+    // Key input — save button
+    document.getElementById('key-save-btn').addEventListener('click', () => {
+        const val = document.getElementById('key-input').value;
+        if (applyKey(val)) showToast('Key saved ✓', 'info');
     });
 
-    // Drag-drop .env
-    const dropZone = document.getElementById('drop-zone');
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = ev => {
-                const parsed = parseEnv(ev.target.result);
-                if (parsed.anthropic) {
-                    G.apiKey = parsed.anthropic;
-                    setApiKey(parsed.anthropic);
-                    document.getElementById('api-status').textContent = 'Key loaded ✓';
-                    document.getElementById('api-status').classList.add('loaded');
-                    document.getElementById('deal-btn').disabled = G.currentBet === 0;
-                    showToast('API key loaded ✓', 'info');
-                }
-            };
-            reader.readAsText(file);
+    // Key input — press Enter to save
+    document.getElementById('key-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            if (applyKey(e.target.value)) showToast('Key saved ✓', 'info');
         }
     });
+
+    // Clear key
+    document.getElementById('key-clear-btn').addEventListener('click', clearKey);
+
+    // Load persisted key on startup
+    const saved = localStorage.getItem(LS_KEY);
+    if (saved) applyKey(saved);
 
     // Chips
     document.querySelectorAll('.chip').forEach(btn => {
