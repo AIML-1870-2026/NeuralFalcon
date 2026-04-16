@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack AI Agent</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="header-left">
+        <h1>♠ Blackjack AI Agent</h1>
+        <span id="tournament-status"></span>
+    </div>
+    <div class="header-right">
+        <div id="balance-display">Balance: $<span id="balance">1000</span></div>
+        <button id="theme-btn" class="ctrl-btn">☀ Light</button>
+        <button id="voice-btn" class="ctrl-btn">🔇 Voice Off</button>
+    </div>
+</header>
+
+<div id="result-banner" style="display:none;"></div>
+
+<main>
+
+    <!-- ── API Setup ──────────────────────────────────── -->
+    <section id="api-setup">
+        <h2>API Key</h2>
+        <div id="drop-zone">
+            Drop <code>.env</code> here or
+            <label class="file-label">
+                browse<input type="file" id="env-upload" accept=".env,.txt">
+            </label>
+        </div>
+        <span id="api-status">No key loaded</span>
+        <p class="hint">Key is held in memory only — never written to localStorage or sent anywhere except <code>api.anthropic.com</code>.</p>
+    </section>
+
+    <!-- ── Bet + Deal ────────────────────────────────── -->
+    <section id="bet-section">
+        <h2>Place Bet</h2>
+        <div id="chip-selector">
+            <button class="chip" data-value="5">$5</button>
+            <button class="chip" data-value="10">$10</button>
+            <button class="chip" data-value="25">$25</button>
+            <button class="chip" data-value="50">$50</button>
+            <button class="chip" data-value="100">$100</button>
+        </div>
+        <div class="bet-row">
+            <span id="bet-display">Bet: $<span id="current-bet">0</span></span>
+            <button id="clear-bet" class="btn-secondary">Clear</button>
+            <button id="deal-btn" class="btn-primary" disabled>Deal</button>
+        </div>
+        <div id="bet-hint" class="hint"></div>
+    </section>
+
+    <!-- ── Game Table ────────────────────────────────── -->
+    <section id="game-table">
+        <div id="dealer-area">
+            <h2>Dealer <span id="dealer-total"></span></h2>
+            <div id="dealer-hand"></div>
+        </div>
+        <div id="player-area"></div>
+    </section>
+
+    <!-- ── AI Controls ───────────────────────────────── -->
+    <section id="ai-panel">
+        <h2>AI Analysis</h2>
+
+        <!-- Explainability depth -->
+        <div class="control-row">
+            <label>Explanation depth:</label>
+            <div class="seg">
+                <button class="depth-btn active" data-depth="basic">Basic</button>
+                <button class="depth-btn" data-depth="standard">Standard</button>
+                <button class="depth-btn" data-depth="deep">Deep Dive</button>
+            </div>
+        </div>
+
+        <!-- Play style -->
+        <div class="control-row">
+            <label>Play style:</label>
+            <select id="play-style">
+                <option value="balanced">Balanced (Basic Strategy)</option>
+                <option value="conservative">Conservative</option>
+                <option value="aggressive">Aggressive</option>
+                <option value="card-counter">Card Counter Mode</option>
+            </select>
+        </div>
+
+        <!-- Running count (card counter mode) -->
+        <div class="control-row" id="count-row" style="display:none;">
+            <label>Running count:</label>
+            <input type="number" id="running-count" placeholder="0" style="width:70px;">
+        </div>
+
+        <!-- Multi-model compare -->
+        <div class="control-row">
+            <label>Compare with:</label>
+            <select id="compare-model">
+                <option value="">None</option>
+                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
+                <option value="claude-opus-4-7">Claude Opus 4.7</option>
+            </select>
+        </div>
+
+        <div id="recommended-action"></div>
+        <div id="ai-reasoning"></div>
+        <div id="basic-strategy-note" class="hint"></div>
+        <div id="compare-result" class="compare-box"></div>
+
+        <div class="action-btns">
+            <button id="get-advice-btn" class="btn-primary" disabled>Get AI Advice</button>
+            <button id="execute-btn" class="btn-gold" disabled>Execute Recommendation</button>
+        </div>
+    </section>
+
+    <!-- ── Strategy Matrix ───────────────────────────── -->
+    <section id="strategy-section">
+        <h2>Basic Strategy Matrix</h2>
+        <p class="hint">Gold outline = your current hand vs. dealer up card.</p>
+        <div id="strategy-matrix"></div>
+    </section>
+
+    <!-- ── Deck Tracker ──────────────────────────────── -->
+    <section id="deck-section">
+        <h2>Deck Composition</h2>
+        <div id="deck-tracker"></div>
+    </section>
+
+    <!-- ── Post-Mortem ───────────────────────────────── -->
+    <section id="postmortem-section">
+        <h2>Hand Replay</h2>
+        <div id="post-mortem" style="display:none;"></div>
+    </section>
+
+    <!-- ── Analytics ────────────────────────────────── -->
+    <section id="analytics-section">
+        <h2>Session Analytics</h2>
+        <div id="analytics-stats"></div>
+        <canvas id="bankroll-chart"></canvas>
+        <button id="export-stats" class="btn-secondary">Export JSON</button>
+    </section>
+
+    <!-- ── Scenario Sandbox ──────────────────────────── -->
+    <section id="sandbox-section">
+        <h2>Scenario Sandbox</h2>
+        <p class="hint">Set any hand without playing — query AI on edge cases.</p>
+        <div class="sandbox-row">
+            <label>Your cards (e.g. A 7):</label>
+            <input type="text" id="sandbox-player" placeholder="A 7">
+        </div>
+        <div class="sandbox-row">
+            <label>Dealer up card:</label>
+            <input type="text" id="sandbox-dealer" placeholder="6" style="width:60px;">
+        </div>
+        <button id="sandbox-btn" class="btn-secondary">Ask AI</button>
+        <div id="sandbox-result" class="sandbox-result"></div>
+    </section>
+
+    <!-- ── Tournament ───────────────────────────────── -->
+    <section id="tournament-section">
+        <h2>Tournament Mode</h2>
+        <div class="sandbox-row">
+            <label>Hands:</label>
+            <input type="number" id="tournament-hands" value="20" min="5" max="200" style="width:70px;">
+        </div>
+        <button id="tournament-start" class="btn-secondary">Start Tournament</button>
+        <div id="tournament-result" class="hint"></div>
+    </section>
+
+    <!-- ── Console Log ───────────────────────────────── -->
+    <section id="console-section">
+        <h2>Agent Log <button id="clear-log" class="btn-tiny">Clear</button></h2>
+        <div id="console-output"></div>
+    </section>
+
+</main>
+
+<script src="strategy.js"></script>
+<script src="analytics.js"></script>
+<script src="agent.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
