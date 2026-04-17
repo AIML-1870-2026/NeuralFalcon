@@ -68,6 +68,7 @@ async function queryAgent(gameState, explainDepth = 'standard', playStyle = 'bal
         body: JSON.stringify({
             model,
             max_tokens: 512,
+            temperature: 0,
             response_format: { type: 'json_object' },
             messages: [
                 { role: 'system', content: 'You are an expert Blackjack strategy AI. Always respond with valid JSON.' },
