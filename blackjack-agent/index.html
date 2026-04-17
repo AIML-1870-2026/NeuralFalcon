@@ -28,9 +28,9 @@
     <section id="api-setup">
         <h2>OpenAI API Key</h2>
         <div class="key-input-row">
-            <input type="text" id="key-input" placeholder="Paste OpenAI key here" autocomplete="new-password" spellcheck="false">
-            <button id="key-save-btn" class="btn-primary">Save</button>
-            <button id="key-clear-btn" class="btn-secondary">Clear</button>
+            <input type="text" id="key-input" placeholder="Paste OpenAI key here" autocomplete="new-password" spellcheck="false" onkeydown="if(event.key==='Enter') saveKey()">
+            <button class="btn-primary" onclick="saveKey()">Save</button>
+            <button class="btn-secondary" onclick="clearKey()">Clear</button>
         </div>
         <span id="api-status">No key loaded</span>
         <p class="hint">Saved to <code>localStorage</code> for convenience. Never sent anywhere except <code>api.openai.com</code>.</p>

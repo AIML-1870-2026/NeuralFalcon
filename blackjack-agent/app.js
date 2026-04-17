@@ -609,18 +609,16 @@ function showToast(msg, type = 'info') {
 // ─── Key Management ───────────────────────────────────────
 const LS_KEY = 'bj_openai_key';
 
-function applyKey(key) {
-    key = (key || '').trim();
-    if (!key) { showToast('Paste your OpenAI API key first.', 'warn'); return false; }
+function saveKey() {
+    const key = (document.getElementById('key-input').value || '').trim();
+    if (!key) { alert('Paste your OpenAI API key into the box first.'); return; }
     G.apiKey = key;
     setApiKey(key);
     localStorage.setItem(LS_KEY, key);
     document.getElementById('api-status').textContent = 'Key loaded ✓ (' + key.slice(0, 8) + '••••' + key.slice(-4) + ')';
     document.getElementById('api-status').classList.add('loaded');
-    document.getElementById('key-input').value = key;
     document.getElementById('deal-btn').disabled = G.currentBet === 0;
     agentLog('info', 'OpenAI key saved to localStorage');
-    return true;
 }
 
 function clearKey() {
@@ -631,30 +629,19 @@ function clearKey() {
     document.getElementById('api-status').classList.remove('loaded');
     document.getElementById('key-input').value = '';
     document.getElementById('deal-btn').disabled = true;
-    showToast('Key cleared.', 'info');
 }
 
 // ─── UI Event Wiring ─────────────────────────────────────
 function initUI() {
-    // Key input — save button
-    document.getElementById('key-save-btn').addEventListener('click', () => {
-        const val = document.getElementById('key-input').value;
-        if (applyKey(val)) showToast('Key saved ✓', 'info');
-    });
-
-    // Key input — press Enter to save
-    document.getElementById('key-input').addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            if (applyKey(e.target.value)) showToast('Key saved ✓', 'info');
-        }
-    });
-
-    // Clear key
-    document.getElementById('key-clear-btn').addEventListener('click', clearKey);
-
     // Load persisted key on startup
     const saved = localStorage.getItem(LS_KEY);
-    if (saved) applyKey(saved);
+    if (saved) {
+        G.apiKey = saved;
+        setApiKey(saved);
+        document.getElementById('key-input').value = saved;
+        document.getElementById('api-status').textContent = 'Key loaded ✓ (' + saved.slice(0, 8) + '••••' + saved.slice(-4) + ')';
+        document.getElementById('api-status').classList.add('loaded');
+    }
 
     // Chips
     document.querySelectorAll('.chip').forEach(btn => {
@@ -736,4 +723,14 @@ function initUI() {
     agentLog('info', 'Blackjack AI Agent ready. Paste your OpenAI key above to begin.');
 }
 
-document.addEventListener('DOMContentLoaded', initUI);
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        initUI();
+    } catch (e) {
+        console.error('initUI failed:', e);
+        document.body.insertAdjacentHTML('afterbegin',
+            `<div style="background:#b71c1c;color:#fff;padding:12px 20px;font-family:monospace;z-index:9999;position:fixed;top:0;left:0;right:0;">
+                JS Error: ${e.message} — open browser console for details.
+            </div>`);
+    }
+});
