@@ -610,12 +610,12 @@ function showToast(msg, type = 'info') {
 const LS_KEY = 'bj_openai_key';
 
 function applyKey(key) {
-    key = key.trim();
-    if (!key.startsWith('sk-')) { showToast('Key should start with sk-', 'warn'); return false; }
+    key = (key || '').trim();
+    if (!key) { showToast('Paste your OpenAI API key first.', 'warn'); return false; }
     G.apiKey = key;
     setApiKey(key);
     localStorage.setItem(LS_KEY, key);
-    document.getElementById('api-status').textContent = 'Key loaded ✓ (' + key.slice(0,6) + '••••' + key.slice(-4) + ')';
+    document.getElementById('api-status').textContent = 'Key loaded ✓ (' + key.slice(0, 8) + '••••' + key.slice(-4) + ')';
     document.getElementById('api-status').classList.add('loaded');
     document.getElementById('key-input').value = key;
     document.getElementById('deal-btn').disabled = G.currentBet === 0;
@@ -733,7 +733,7 @@ function initUI() {
     Analytics.init(G.balance);
     setPhase('betting');
     renderBalance();
-    agentLog('info', 'Blackjack AI Agent ready. Upload a .env file to begin.');
+    agentLog('info', 'Blackjack AI Agent ready. Paste your OpenAI key above to begin.');
 }
 
 document.addEventListener('DOMContentLoaded', initUI);
