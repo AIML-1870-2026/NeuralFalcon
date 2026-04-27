@@ -1,0 +1,75 @@
+This is where you will put the articles you write for the website. 
+IMPORTANT: don't write the articles in this file, just copy and paste them when you are done. Do not include enters anywhere except where you intend to create a new paragraph in the content.
+To add a new blog post, copy the template and paste it under the ALL POSTS marker. Make sure there is a "----" on the top and bottom of the post.
+The following template for the article should be followed, with the text inside the curly braces being what you write, and everything else being copy/pasted:
+
+TEMPLATE:
+----
+Title: {Write here}
+Subtitle: {Write here}
+Date: {Write a date in the xx/xx/xxxx format. Only the 10 characters of the date should be in this section}
+Content: {Paste the main content of the blog here}
+Image URL: {Paste the url to an image for the post. The url go be to the assets folder, then be a photo inside of it}
+Image Alt Text: {This is what screen readers will see. Describe the image so that blind people know what it was.}
+
+
+
+
+----
+ALL POSTS:
+----
+Title: Introducing the Bobby Byars Foundation Scholarship
+Subtitle: A new chapter in honoring Bobby's legacy of generosity and opportunity
+Date: 03/15/2025
+Content: We are proud to announce the launch of the Bobby Byars Foundation Scholarship — an annual award designed to support students who carry the same spirit of determination, kindness, and community that defined Bobby's life. Bobby believed deeply that every young person deserves a fair shot, and this scholarship is our commitment to making that belief real. Each year, we will award scholarships to students who demonstrate not only academic promise, but also a genuine desire to serve others and lift up their communities. Applications are now open for the 2025-2026 academic year. We encourage families, teachers, and community members to help us spread the word. If you know a student who embodies Bobby's values — someone hardworking, compassionate, and determined to make a difference — please encourage them to apply. Together, we can ensure Bobby's spirit lives on in the next generation of leaders.
+Image URL: assets/pic1.png
+Image Alt Text: A student in cap and gown holding a diploma, smiling at a graduation ceremony.
+
+
+
+
+----
+Title: Spring Food Drive: A Community Comes Together
+Subtitle: Neighbors helping neighbors in the spirit Bobby always showed
+Date: 04/02/2025
+Content: This past March, the Bobby Byars Foundation hosted its first annual Spring Food Drive, and the response from the community was nothing short of incredible. Over the course of two weekends, volunteers collected more than 1,200 pounds of non-perishable food items, which were donated directly to local families in need. Bobby had a gift for showing up — for his neighbors, his friends, and anyone who needed a hand. This food drive was a small reflection of the way he lived. We want to thank every volunteer who gave their time, every donor who contributed, and every community partner who helped make this event possible. The need in our community is real, and so is the generosity. We look forward to growing this event each year and continuing to serve the people and places Bobby loved.
+Image URL: assets/pic1.png
+Image Alt Text: Volunteers standing behind tables stacked with canned goods and food donation boxes at a community food drive.
+
+
+
+
+----
+Title: Remembering Bobby: One Year Later
+Subtitle: Reflecting on the life, love, and legacy that started it all
+Date: 06/20/2025
+Content: A year has passed since we lost Bobby, and yet his presence is felt in everything this foundation does. The laughter he brought to every room. The way he made each person feel seen and valued. The quiet courage he showed when it mattered most. In the months since we founded this organization in his name, we have been humbled by the outpouring of support from friends, family, and strangers who were touched by Bobby's life. Stories have come to us from people we never met — neighbors, former coworkers, people whose lives Bobby changed with a single conversation or a simple act of kindness. This foundation is our way of saying: his story does not end here. Every scholarship awarded, every family supported, every young person encouraged — that is Bobby, still at work in the world. Thank you for walking this road with us. We carry him forward, together.
+Image URL: assets/pic1.png
+Image Alt Text: A sunset over a quiet neighborhood street, evoking warmth, memory, and peace.
+
+
+
+
+----
+Title: Meet Our First Scholarship Recipients
+Subtitle: Three remarkable students stepping into their future
+Date: 08/10/2025
+Content: We are overjoyed to introduce the first recipients of the Bobby Byars Foundation Scholarship. These three young people were selected from a remarkable pool of applicants, and each of them embodies the values Bobby held dear. Our first recipient is pursuing a degree in nursing, driven by a desire to serve her community the way others served hers growing up. Our second recipient is the first in his family to attend a four-year university, and plans to study education so he can one day give back to students like himself. Our third recipient is a young entrepreneur with a vision for revitalizing her hometown through small business development. We are proud of each of them and honored to play a small role in their journeys. Bobby would have loved them. He would have sat with each of them, asked about their dreams, and told them — with complete sincerity — that he believed in them. So do we.
+Image URL: assets/pic1.png
+Image Alt Text: Three young adults smiling together on a college campus, wearing backpacks and holding notebooks.
+
+
+
+
+----
+Title: How to Get Involved This Fall
+Subtitle: Volunteer, donate, or nominate — every action carries Bobby's legacy forward
+Date: 09/01/2025
+Content: As we head into a new season, we want to invite you — yes, you — to be a part of what we are building. The Bobby Byars Foundation is powered entirely by people who cared about Bobby and believe in the mission he inspired. There are several ways to get involved this fall. First, we are looking for volunteers to help with our upcoming community outreach events, including a back-to-school supply drive and a neighborhood cleanup day. If you have a few hours to give, we would love to have you. Second, if you are in a position to donate, every dollar goes directly toward scholarships and community programs. No contribution is too small — Bobby never measured generosity by the dollar amount, and neither do we. Finally, if you know a student who deserves recognition and support, you can now submit a scholarship nomination through our website. Help us find the next young person whose life we can change. Together, we are not just honoring a memory. We are building something that lasts.
+Image URL: assets/pic1.png
+Image Alt Text: A group of volunteers in matching shirts gathering outdoors before a community service event.
+
+
+
+
+----
