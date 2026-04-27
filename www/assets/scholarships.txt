@@ -1,0 +1,41 @@
+This is where you will put the active scholarships for the website. 
+IMPORTANT: don't write the descriptions in this file, just copy and paste them when you are done. Do not include enters anywhere except where you intend to create a new paragraph in the content.
+To add a new scholarship, copy the template and paste it under the ALL POSTS marker. Make sure there is a "----" on the top and bottom of the post.
+The following template for the article should be followed, with the text inside the curly braces being what you write, and everything else being copy/pasted:
+
+TEMPLATE:
+----
+Title: {Write here}
+Amount: {Write here in the following format: $xxx.xx}
+Eligibility: 
+Due Date: {Write a date in the xx/xx/xxxx format. Only the 10 characters of the date should be in this section}
+Description: {Paste the main content of the blog here}
+External Link: {This is a url to go to the scholarship application page}
+
+
+
+
+----
+ALL POSTS:
+----
+Title: Bobby Byars Memorial Scholarship
+Amount: $2,500.00
+Eligibility: High school senior or current college student residing in Spartanburg County, SC with a minimum 2.5 GPA and demonstrated financial need.
+Due Date: 05/15/2026
+Description: The Bobby Byars Memorial Scholarship honors the legacy of Bobby Byars by supporting local students who demonstrate perseverance, community involvement, and a commitment to their education. Recipients are selected based on academic achievement, financial need, and a personal essay describing how they have overcome adversity. This scholarship may be used toward tuition, fees, books, or other qualifying educational expenses at any accredited two- or four-year institution.
+External Link: https://bobbybyarsfoundation.org/
+----
+Title: Community Leaders Scholarship
+Amount: $1,000.00
+Eligibility: Current undergraduate student enrolled full-time at an accredited college or university with at least one year of verifiable community service.
+Due Date: 06/01/2026
+Description: The Community Leaders Scholarship recognizes students who go beyond the classroom to serve their communities. Whether through volunteer work, nonprofit involvement, or grassroots organizing, this award celebrates those who make a difference in the lives of others. Applicants must submit two letters of recommendation from community organizations and a 500-word essay on their service experience.
+External Link: https://bobbybyarsfoundation.org/
+----
+Title: First Generation College Student Award
+Amount: $1,500.00
+Eligibility: First-generation college student (neither parent holds a bachelor's degree) accepted to or currently enrolled in an accredited post-secondary institution.
+Due Date: 04/30/2026
+Description: The First Generation College Student Award is designed to remove financial barriers for students who are the first in their families to pursue a college degree. The foundation recognizes the unique challenges these students face and is proud to invest in their futures. Applicants must provide proof of first-generation status and submit a personal statement describing their educational goals and what earning a degree means to their family.
+External Link: https://bobbybyarsfoundation.org/
+----
